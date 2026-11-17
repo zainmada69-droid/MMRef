@@ -1,0 +1,2549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>MM Ref Opr Hub — Portal Lapangan</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        /* Viewport khusus 2-finger pinch zoom & drag */
+        #imageViewport {
+            touch-action: none;
+            cursor: grab;
+        }
+        #imageViewport:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased pb-24">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex flex-col gap-2 w-[90%] max-w-sm pointer-events-none"></div>
+
+    <!-- Header / Top Bar -->
+    <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-lg border-b-4 border-amber-500">
+        <div class="max-w-lg mx-auto px-4 py-3.5">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-900 flex items-center justify-center font-extrabold text-lg shadow-inner shrink-0">
+                        <i class="fa-solid fa-helmet-safety"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h1 id="appMainTitle" class="font-extrabold text-base sm:text-lg tracking-tight leading-none truncate">MM Ref Opr Hub</h1>
+                            <span id="cloudSyncBadge" onclick="openCloudSyncModal()" class="cursor-pointer inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0" title="Ketuk untuk pengaturan sinkronisasi HP">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span> SYNC
+                            </span>
+                        </div>
+                        <p id="liveClock" class="text-xs text-slate-300 font-medium mt-1 truncate">Memuat waktu...</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="openCloudSyncModal()" title="Bagikan / Sinkronkan ke HP Lain" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 transition active:scale-95">
+                        <i class="fa-solid fa-share-nodes text-sm"></i>
+                    </button>
+                    <button type="button" onclick="openInstallModal()" title="Pasang di Layar HP" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition active:scale-95">
+                        <i class="fa-solid fa-mobile-screen-button text-sm"></i>
+                    </button>
+                    <button type="button" id="toggleEditBtn" onclick="toggleEditMode()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95">
+                        <i class="fa-solid fa-lock text-amber-400"></i>
+                        <span id="editBtnText">Edit</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Edit Mode Banner -->
+            <div id="editModeBanner" class="hidden mt-3 pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span class="text-amber-300 font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Admin (MM05) • Auto-Sync
+                </span>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="openCloudSyncModal()" class="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-extrabold hover:bg-emerald-400 transition">
+                        <i class="fa-solid fa-share-nodes mr-1"></i> Link Sync HP
+                    </button>
+                    <button type="button" onclick="openAppTextEditorModal()" class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-extrabold hover:bg-amber-400 transition">
+                        <i class="fa-solid fa-font mr-1"></i> Teks
+                    </button>
+                    <button type="button" onclick="openConfirmReset()" class="text-rose-400 hover:text-rose-300 underline font-semibold">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-lg mx-auto px-4 pt-4 space-y-6">
+
+        <!-- Section 0: Header Photo Carousel (3 Foto Berjalan) -->
+        <section aria-label="Galeri Foto Operasional" class="relative rounded-2xl overflow-hidden shadow-md border border-slate-200 bg-slate-900 aspect-[16/8]">
+            <div id="carouselTrack" class="flex w-full h-full transition-transform duration-500 ease-out">
+                <!-- Rendered via JS -->
+            </div>
+
+            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent p-3.5 flex items-end justify-between pointer-events-none">
+                <div class="min-w-0 pr-2">
+                    <span id="carouselBadgeText" class="inline-block px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-extrabold text-[9px] uppercase tracking-wider mb-1">INFO &amp; DOKUMENTASI PTS</span>
+                    <p id="carouselCaption" class="text-white text-xs sm:text-sm font-bold truncate">Safety First — Zero Accident</p>
+                </div>
+                <div id="carouselDots" class="flex items-center gap-1.5 pointer-events-auto pb-1">
+                    <!-- Rendered via JS -->
+                </div>
+            </div>
+
+            <button type="button" onclick="moveCarousel(-1)" aria-label="Foto Sebelumnya" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/50 hover:bg-slate-950/80 text-white flex items-center justify-center transition active:scale-90">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <button type="button" onclick="moveCarousel(1)" aria-label="Foto Berikutnya" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/50 hover:bg-slate-950/80 text-white flex items-center justify-center transition active:scale-90">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+
+            <button id="editBannerBtn" type="button" onclick="openBannerEditorModal()" class="hidden absolute top-2.5 right-2.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg flex items-center gap-1.5 z-10">
+                <i class="fa-solid fa-camera"></i> Ganti 3 Foto Header
+            </button>
+        </section>
+
+        <!-- Section 1: Kontak Darurat PTS (Quick-Action WhatsApp dengan Konfirmasi Teks Besar) -->
+        <section aria-label="Kontak Darurat PTS">
+            <div class="flex items-center justify-between mb-2.5">
+                <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> <span id="emergencySectionTitle">Darurat &amp; Tanggap Cepat PTS</span>
+                </h2>
+                <span class="text-[11px] text-slate-400 font-medium">Ketuk untuk WA</span>
+            </div>
+
+            <div id="emergencyGrid" class="grid grid-cols-3 gap-2.5">
+                <!-- Rendered via JS -->
+            </div>
+        </section>
+
+        <!-- Section 2: Menu Utama Operasional -->
+        <section aria-label="Menu Utama Operasional">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <i class="fa-solid fa-table-cells-large text-slate-700"></i> <span id="menuSectionTitle">Menu Operasional</span>
+                </h2>
+                <button type="button" onclick="openAddMenuModal()" class="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                    <i class="fa-solid fa-plus"></i> Tambah Menu
+                </button>
+            </div>
+
+            <div id="mainMenuGrid" class="grid grid-cols-2 gap-3">
+                <!-- Rendered via JS -->
+            </div>
+
+            <button type="button" onclick="openAddMenuModal()" class="mt-3 w-full py-3.5 px-4 rounded-2xl border-2 border-dashed border-slate-300 hover:border-blue-500 bg-white/60 hover:bg-blue-50/50 text-slate-600 hover:text-blue-700 font-bold text-sm flex items-center justify-center gap-2 transition active:scale-[0.99]">
+                <i class="fa-solid fa-circle-plus text-blue-600 text-base"></i>
+                <span id="addMenuBtnLabel">+ Tambah Menu / Link Lainnya</span>
+            </button>
+        </section>
+
+        <!-- Section 3: Riwayat Report Google Form & PDF -->
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-file-pdf text-base"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 id="reportSectionTitle" class="text-sm font-extrabold text-slate-900 truncate">Riwayat Report &amp; PDF</h3>
+                        <p class="text-[11px] text-slate-500 truncate" id="reportSectionSubtitle">Hasil Google Form, Spreadsheet &amp; PDF Email</p>
+                    </div>
+                </div>
+                <button type="button" onclick="openReportModal()" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shrink-0">
+                    Lihat Riwayat
+                </button>
+            </div>
+            <div id="recentReportPreviewList" class="space-y-1.5">
+                <!-- Preview hasil Google Form & PDF -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation / Quick Bar -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-30 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <div class="max-w-lg mx-auto px-4 py-2 flex items-center justify-around">
+            <button type="button" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="flex flex-col items-center gap-1 p-1.5 text-slate-900 font-bold text-[11px]">
+                <i class="fa-solid fa-house text-base text-amber-500"></i>
+                <span>Beranda</span>
+            </button>
+            <button type="button" onclick="openImageViewer('shift')" class="flex flex-col items-center gap-1 p-1.5 text-slate-600 hover:text-slate-900 font-medium text-[11px]">
+                <i class="fa-solid fa-calendar-days text-base"></i>
+                <span>Shift</span>
+            </button>
+            <button type="button" onclick="openImageViewer('pid')" class="flex flex-col items-center gap-1 p-1.5 text-slate-600 hover:text-slate-900 font-medium text-[11px]">
+                <i class="fa-solid fa-diagram-project text-base"></i>
+                <span>P&amp;ID</span>
+            </button>
+            <button type="button" onclick="openReportModal()" class="flex flex-col items-center gap-1 p-1.5 text-slate-600 hover:text-slate-900 font-medium text-[11px]">
+                <i class="fa-solid fa-file-pdf text-base"></i>
+                <span>Report</span>
+            </button>
+            <button type="button" onclick="openInventoryWebApp()" class="flex flex-col items-center gap-1 p-1.5 text-slate-600 hover:text-slate-900 font-medium text-[11px]">
+                <i class="fa-solid fa-boxes-stacked text-base"></i>
+                <span>Inventory</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: UNIVERSAL 2-FINGER PINCH ZOOM VIEWER (MULTI-GAMBAR & PDF)    -->
+    <!-- ===================================================================== -->
+    <div id="imageViewerModal" class="fixed inset-0 z-50 hidden bg-slate-950/95 flex flex-col">
+        <!-- Viewer Top Header -->
+        <div class="flex items-center justify-between px-4 py-3 bg-slate-900 text-white border-b border-slate-800 shrink-0">
+            <div class="min-w-0 pr-2">
+                <h3 id="viewerTitle" class="font-bold text-sm sm:text-base truncate">Judul Dokumen</h3>
+                <p id="viewerSubtitle" class="text-[11px] text-amber-400 truncate">Cubit dengan 2 jari untuk zoom &amp; geser</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="viewerEditBtn" type="button" onclick="requireAdminAuth(() => openEditImageSourceModal())" class="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-lock"></i> <span id="viewerEditBtnLabel">Atur Gambar</span>
+                </button>
+                <button type="button" onclick="closeModal('imageViewerModal')" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Multi-Image Selector Strip (Khusus Gambar P&ID yang terdiri dari beberapa gambar) -->
+        <div id="multiImageTabsBar" class="hidden bg-slate-900 px-3 py-2 border-b border-slate-800 flex items-center gap-2 overflow-x-auto shrink-0">
+            <!-- Rendered via JS -->
+        </div>
+
+        <!-- Zoom Controls Bar -->
+        <div class="bg-slate-900/90 px-4 py-2 flex items-center justify-center gap-3 border-b border-slate-800 shrink-0">
+            <button type="button" onclick="adjustZoom(-0.3)" class="px-3 py-1 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-700">
+                <i class="fa-solid fa-magnifying-glass-minus"></i>
+            </button>
+            <span id="zoomLevelBadge" class="text-xs font-mono text-amber-400 font-bold min-w-[52px] text-center">100%</span>
+            <button type="button" onclick="adjustZoom(0.3)" class="px-3 py-1 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-700">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+            </button>
+            <button type="button" onclick="resetZoom()" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs hover:bg-slate-700">
+                Reset
+            </button>
+            <span class="text-[10px] text-slate-400 hidden sm:inline">• Cubit 2 jari di layar</span>
+        </div>
+
+        <!-- Interactive 2-Finger Pinch-Zoom Viewport -->
+        <div id="imageViewport" class="flex-1 relative overflow-hidden flex items-center justify-center p-2">
+            <!-- Image Target -->
+            <img id="viewerImageElement" src="" alt="Preview Dokumen" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none origin-center" draggable="false">
+            <!-- PDF Target (Wrapped in transformable container for 2-finger pinch zoom) -->
+            <div id="viewerPdfWrapper" class="hidden w-full h-full flex items-center justify-center origin-center">
+                <iframe id="viewerPdfFrame" src="" class="w-full h-full max-w-3xl rounded-xl bg-white shadow-2xl border-0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: ATUR GAMBAR DOKUMEN / MULTI-GAMBAR P&ID                      -->
+    <!-- ===================================================================== -->
+    <div id="editImageSourceModal" class="fixed inset-0 z-[60] hidden bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 id="editImgModalHeading" class="font-extrabold text-base text-slate-900">Perbarui Gambar</h3>
+                    <p id="editImgModalSub" class="text-[11px] text-slate-500">Perubahan otomatis sinkron ke semua HP</p>
+                </div>
+                <button type="button" onclick="closeModal('editImageSourceModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- List Gambar P&ID (Hanya muncul saat mengedit menu P&ID) -->
+            <div id="pidMultiManagerSection" class="hidden space-y-2.5 border-b border-slate-200 pb-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-extrabold text-slate-800">Daftar Lembar Gambar P&amp;ID:</span>
+                    <button type="button" onclick="addNewPidSheet()" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold">
+                        + Tambah Lembar P&amp;ID
+                    </button>
+                </div>
+                <div id="pidSheetsList" class="space-y-2 max-h-40 overflow-y-auto">
+                    <!-- Rendered via JS -->
+                </div>
+            </div>
+
+            <div class="space-y-3.5">
+                <div id="sheetTitleInputGroup" class="hidden">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lembar / Area P&amp;ID</label>
+                    <input id="activeSheetNameInput" type="text" placeholder="Contoh: P&ID Unit 01 - Feed System" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">1. Pilih Foto dari Galeri / File HP</label>
+                    <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-blue-300 rounded-2xl cursor-pointer bg-blue-50/50 hover:bg-blue-50 transition">
+                        <div class="flex flex-col items-center justify-center text-center px-3">
+                            <i class="fa-solid fa-cloud-arrow-up text-xl text-blue-600 mb-1"></i>
+                            <p class="text-xs font-bold text-slate-700">Ketuk untuk pilih gambar dari HP</p>
+                            <p class="text-[10px] text-slate-500">Otomatis dikompres &amp; disinkronkan ke semua HP</p>
+                        </div>
+                        <input id="imageFileUpload" type="file" accept="image/*" class="hidden" onchange="handleImageFileUpload(event)">
+                    </label>
+                </div>
+
+                <div class="relative flex py-0.5 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-3 text-[10px] font-bold text-slate-400 uppercase">Atau Link URL Gambar</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">2. Link URL Gambar (Google Drive / Web)</label>
+                    <input id="imageUrlInput" type="url" placeholder="https://contoh.com/gambar-pid.jpg" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <button type="button" onclick="restoreDefaultImage()" class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">
+                    Bawaan
+                </button>
+                <button type="button" onclick="saveImageUrl()" class="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-md">
+                    Simpan &amp; Sinkronkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: RIWAYAT REPORT GOOGLE FORM, SPREADSHEET & PDF VIEWER         -->
+    <!-- ===================================================================== -->
+    <div id="reportModal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-lg h-[92vh] sm:h-[88vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <h3 id="reportModalHeaderTitle" class="font-extrabold text-base">Riwayat Report &amp; PDF</h3>
+                        <p class="text-[11px] text-slate-300">Hasil Google Form, Spreadsheet &amp; PDF Email</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('reportModal')" class="w-9 h-9 rounded-xl bg-slate-800 text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Action Links Bar (Google Form, Spreadsheet Hasil, & Tambah Arsip PDF) -->
+            <div class="p-4 bg-slate-50 border-b border-slate-200 space-y-2.5 shrink-0">
+                <div class="grid grid-cols-2 gap-2">
+                    <a id="externalReportFormLink" href="https://forms.google.com" target="_blank" rel="noopener" class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-pen-to-square"></i> Isi Google Form
+                    </a>
+                    <a id="externalReportSheetLink" href="https://docs.google.com/spreadsheets" target="_blank" rel="noopener" class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-table"></i> Buka Spreadsheet
+                    </a>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <span class="text-xs font-extrabold text-slate-700">Daftar Hasil Form &amp; PDF (Ketuk PDF untuk Zoom):</span>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="requireAdminAuth(() => openReportSettingsModal())" class="px-2.5 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-bold" title="Atur Link Form/Sheet">
+                            <i class="fa-solid fa-gear"></i> Link
+                        </button>
+                        <button type="button" onclick="requireAdminAuth(() => toggleAddReportForm())" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Tambah PDF/Hasil
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Form Tambah Riwayat Hasil Form / Link PDF Email -->
+                <form id="addReportForm" onsubmit="handleAddReportLog(event)" class="hidden bg-white p-3.5 rounded-2xl border border-amber-300 shadow-sm space-y-2.5">
+                    <p class="text-xs font-extrabold text-amber-800">Tambah Riwayat Hasil Form / PDF Email</p>
+                    <input id="repTitleInput" type="text" required placeholder="Judul Report (mis: Laporan Shift Pagi - 17 Nov)" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input id="repPicInput" type="text" required placeholder="Nama Pengisi Form" class="px-3 py-2 rounded-lg border border-slate-300 text-xs">
+                        <input id="repEmailStatusInput" type="text" value="PDF Terkirim ke Email" placeholder="Status Email" class="px-3 py-2 rounded-lg border border-slate-300 text-xs">
+                    </div>
+                    <input id="repPdfUrlInput" type="url" placeholder="Link File PDF (Google Drive / URL PDF)..." class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs">
+                    <textarea id="repNoteInput" rows="2" placeholder="Ringkasan isi jawaban Google Form..." class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"></textarea>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" onclick="toggleAddReportForm()" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100">Batal</button>
+                        <button type="submit" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-950 bg-amber-500">Simpan &amp; Sync</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Daftar Riwayat Report & PDF -->
+            <div id="reportListContainer" class="flex-1 overflow-y-auto p-4 space-y-2.5">
+                <!-- Rendered via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 4: PENGATURAN LINK GOOGLE FORM & SPREADSHEET REPORT             -->
+    <!-- ===================================================================== -->
+    <div id="reportSettingsModal" class="fixed inset-0 z-[65] hidden bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <form onsubmit="handleSaveReportSettings(event)" class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-extrabold text-base text-slate-900">Atur Link Google Form &amp; Spreadsheet</h3>
+                <button type="button" onclick="closeModal('reportSettingsModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Link Google Form Input Report</label>
+                    <input id="cfgReportFormUrl" type="url" required placeholder="https://forms.gle/..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Link Spreadsheet Hasil Form &amp; PDF</label>
+                    <input id="cfgReportSheetUrl" type="url" required placeholder="https://docs.google.com/spreadsheets/..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm">
+                </div>
+            </div>
+            <button type="submit" class="w-full py-3 rounded-xl bg-slate-900 text-white text-sm font-bold">
+                Simpan &amp; Sinkronkan
+            </button>
+        </form>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 5: KONFIRMASI DARURAT WA (TEKS SINGKAT BESAR, TOMBOL KECIL)     -->
+    <!-- ===================================================================== -->
+    <div id="emergencyConfirmModal" class="fixed inset-0 z-[90] hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center space-y-6 border-4 border-rose-600">
+            <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-3xl animate-bounce">
+                <i id="emergConfirmIcon" class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            
+            <!-- Tulisan Singkat Tapi Besar -->
+            <div class="space-y-2">
+                <p id="emergConfirmHeadline" class="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight leading-tight">
+                    HUBUNGI AMBULANCE PTS?
+                </p>
+                <p class="text-xs font-extrabold text-rose-600 uppercase tracking-wide">
+                    KHUSUS DARURAT!
+                </p>
+            </div>
+
+            <!-- Tombol Persetujuan Kecil -->
+            <div class="flex items-center justify-center gap-2.5 pt-1">
+                <button type="button" onclick="closeModal('emergencyConfirmModal')" class="px-2.5 py-1 rounded-md bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold transition">
+                    Batal
+                </button>
+                <a id="emergConfirmProceedBtn" href="#" target="_blank" rel="noopener" onclick="closeModal('emergencyConfirmModal')" class="px-3 py-1 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-extrabold shadow transition flex items-center gap-1">
+                    <i class="fa-brands fa-whatsapp"></i> Ya, Lanjut
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 6: TAMBAH / EDIT MENU CUSTOM & LINK INVENTORY APP WEB           -->
+    <!-- ===================================================================== -->
+    <div id="menuFormModal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <form onsubmit="handleSaveMenu(event)" class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 id="menuFormTitle" class="font-extrabold text-base text-slate-900">Tambah Menu Baru</h3>
+                <button type="button" onclick="closeModal('menuFormModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="editMenuId">
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul Menu *</label>
+                    <input id="menuTitleInput" type="text" required placeholder="Contoh: Inventory Material / Permit Kerja" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Keterangan Singkat</label>
+                    <input id="menuDescInput" type="text" placeholder="Contoh: Koneksi langsung ke Web App Inventory" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div id="menuTypeWrapper">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Jenis Aksi Menu *</label>
+                    <select id="menuTypeInput" onchange="toggleMenuTargetInput()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="link">Link App Web / Google Form / Drive</option>
+                        <option value="image">Tampilkan Gambar / Diagram (Pinch Zoom)</option>
+                        <option value="pdf">Tampilkan Dokumen PDF (Pinch Zoom)</option>
+                        <option value="whatsapp">Kontak WhatsApp Langsung</option>
+                    </select>
+                </div>
+
+                <div id="targetLinkGroup">
+                    <label id="targetLabel" class="block text-xs font-bold text-slate-700 mb-1">URL Tujuan *</label>
+                    <input id="menuTargetInput" type="text" placeholder="https://..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <p id="targetHelper" class="text-[11px] text-slate-500 mt-1">Masukkan link lengkap diawali https://</p>
+                </div>
+
+                <div id="targetImageUploadGroup" class="hidden space-y-2">
+                    <label class="block text-xs font-bold text-slate-700">Upload Gambar dari HP (Opsional)</label>
+                    <input type="file" accept="image/*" onchange="handleCustomMenuImageUpload(event)" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Ikon</label>
+                        <select id="menuIconInput" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white">
+                            <option value="fa-boxes-stacked">📦 Inventory / Gudang</option>
+                            <option value="fa-file-lines">📄 Dokumen / Report</option>
+                            <option value="fa-file-pdf">📕 Dokumen PDF</option>
+                            <option value="fa-shield-halved">🛡️ Safety / WI &amp; JSA</option>
+                            <option value="fa-calendar-days">📅 Jadwal / Shift</option>
+                            <option value="fa-diagram-project">⚙️ Diagram / P&amp;ID</option>
+                            <option value="fa-clipboard-check">✅ Checklist / Permit</option>
+                            <option value="fa-wrench">🔧 Maintenance / Alat</option>
+                            <option value="fa-globe">🌐 Web App External</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Warna Tema</label>
+                        <select id="menuColorInput" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white">
+                            <option value="blue">Biru Operasional</option>
+                            <option value="emerald">Hijau / Inventory</option>
+                            <option value="amber">Kuning / Amber Safety</option>
+                            <option value="indigo">Indigo / Teknik</option>
+                            <option value="rose">Merah / Kritis</option>
+                            <option value="slate">Abu-abu Industrial</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <button type="button" id="deleteMenuBtn" onclick="deleteCurrentMenu()" class="hidden px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold">
+                    <i class="fa-solid fa-trash"></i> Hapus
+                </button>
+                <button type="submit" class="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-md">
+                    Simpan &amp; Sinkronkan
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 7: EDIT NOMOR WA DARURAT PTS                                    -->
+    <!-- ===================================================================== -->
+    <div id="editEmergencyModal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <form onsubmit="handleSaveEmergency(event)" class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-extrabold text-base text-slate-900">Edit Nomor WhatsApp Darurat</h3>
+                <button type="button" onclick="closeModal('editEmergencyModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="editEmergencyId">
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Layanan Darurat</label>
+                    <input id="emergencyNameInput" type="text" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-slate-50 font-semibold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp (Format 628...)</label>
+                    <input id="emergencyPhoneInput" type="tel" required placeholder="Contoh: 6281234567890" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Pesan Otomatis Darurat</label>
+                    <textarea id="emergencyMsgInput" rows="2" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-md">
+                Simpan &amp; Sinkronkan
+            </button>
+        </form>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 8: PANDUAN PASANG DI LAYAR UTAMA HP                            -->
+    <!-- ===================================================================== -->
+    <div id="installGuideModal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                        <i class="fa-solid fa-mobile-screen-button text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-base text-slate-900">Pasang di Layar Utama HP</h3>
+                        <p class="text-[11px] text-slate-500">Gratis &amp; Sinkron Real-Time Semua HP</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('installGuideModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-700">
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                    <p class="font-extrabold text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-brands fa-android text-emerald-600 text-base"></i> Pengguna Android (Google Chrome)
+                    </p>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-600 leading-relaxed">
+                        <li>Ketuk ikon <strong>titik tiga (⋮)</strong> di pojok kanan atas browser Chrome.</li>
+                        <li>Pilih menu <strong>"Tambahkan ke layar utama"</strong> atau <strong>"Install app"</strong>.</li>
+                        <li>Ketuk <strong>Tambahkan / Install</strong>. Setiap perubahan admin otomatis terupdate di semua HP!</li>
+                    </ol>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                    <p class="font-extrabold text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-brands fa-apple text-slate-800 text-base"></i> Pengguna iPhone / iOS (Safari)
+                    </p>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-600 leading-relaxed">
+                        <li>Ketuk tombol <strong>Share (ikon kotak dengan panah ke atas)</strong> di bagian bawah Safari.</li>
+                        <li>Gulir ke bawah dan pilih <strong>"Add to Home Screen" (Tambah ke Layar Utama)</strong>.</li>
+                        <li>Ketuk <strong>Add (Tambah)</strong> di pojok kanan atas.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <button type="button" onclick="closeModal('installGuideModal')" class="w-full py-3 rounded-xl bg-slate-900 text-white text-sm font-bold">
+                Mengerti
+            </button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 9: KONFIRMASI RESET DEFAULT                                     -->
+    <!-- ===================================================================== -->
+    <div id="confirmResetModal" class="fixed inset-0 z-[70] hidden bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4 text-center">
+            <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-rotate-left"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-base text-slate-900">Reset Pengaturan ke Default?</h3>
+                <p class="text-xs text-slate-500 mt-1">Semua menu tambahan, perubahan nomor WA, dan gambar akan dikembalikan ke pengaturan awal untuk semua HP.</p>
+            </div>
+            <div class="flex gap-2">
+                <button type="button" onclick="closeModal('confirmResetModal')" class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Batal</button>
+                <button type="button" onclick="executeResetDefault()" class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold">Ya, Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 10: VERIFIKASI SANDI ADMIN (MM05)                               -->
+    <!-- ===================================================================== -->
+    <div id="passwordModal" class="fixed inset-0 z-[100] hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <form onsubmit="verifyAdminPassword(event)" class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-4">
+            <div class="text-center space-y-1.5">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3 class="font-extrabold text-base text-slate-900">Akses Terkunci</h3>
+                <p class="text-xs text-slate-500">Masukkan sandi admin untuk mengubah tampilan, link, atau gambar.</p>
+            </div>
+
+            <div>
+                <input id="adminPasswordInput" type="password" autocomplete="off" required placeholder="Masukkan sandi..." class="w-full px-4 py-3 rounded-xl border border-slate-300 text-center font-mono font-bold text-base tracking-widest focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <p id="passwordErrorMsg" class="hidden text-[11px] text-rose-600 font-bold text-center mt-1.5">Sandi salah! Silakan coba lagi.</p>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="button" onclick="closeModal('passwordModal')" class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Batal</button>
+                <button type="submit" class="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold">Buka Kunci</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 11: EDIT 3 FOTO HEADER SLIDER                                   -->
+    <!-- ===================================================================== -->
+    <div id="bannerEditorModal" class="fixed inset-0 z-[65] hidden bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-extrabold text-base text-slate-900">Atur 3 Foto Header Berjalan</h3>
+                <button type="button" onclick="closeModal('bannerEditorModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="bannerSlotsContainer" class="space-y-4">
+                <!-- Rendered via JS -->
+            </div>
+
+            <button type="button" onclick="saveBannerChanges()" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-md">
+                Simpan &amp; Sinkronkan Header
+            </button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 12: UBAH TEKS & JUDUL APLIKASI (ADMIN MM05)                     -->
+    <!-- ===================================================================== -->
+    <div id="appTextEditorModal" class="fixed inset-0 z-[75] hidden bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <form onsubmit="handleSaveAppTexts(event)" class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="font-extrabold text-base text-slate-900">Ubah Teks &amp; Judul Aplikasi</h3>
+                    <p class="text-[11px] text-slate-500">Otomatis terupdate di semua perangkat HP</p>
+                </div>
+                <button type="button" onclick="closeModal('appTextEditorModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul Utama Header (Nama Aplikasi)</label>
+                    <input id="txtMainTitle" type="text" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Label Badge Foto Header</label>
+                    <input id="txtCarouselBadge" type="text" required class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul Bagian Darurat WA</label>
+                    <input id="txtEmergencyTitle" type="text" required class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul Bagian Menu Utama</label>
+                    <input id="txtMenuSectionTitle" type="text" required class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Teks Tombol Tambah Menu</label>
+                    <input id="txtAddMenuBtnLabel" type="text" required class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs">
+                </div>
+                <div class="pt-2 border-t border-slate-100 space-y-2.5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Judul Bagian Bawah (Riwayat Report)</label>
+                        <input id="txtReportSectionTitle" type="text" required class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Subjudul / Keterangan Riwayat Report</label>
+                        <input id="txtReportSectionSubtitle" type="text" required class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-md">
+                Simpan &amp; Sinkronkan Semua Teks
+            </button>
+        </form>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 13: SINKRONISASI CLOUD & BAGIKAN LINK UPDATE KE HP LAIN         -->
+    <!-- ===================================================================== -->
+    <div id="cloudSyncModal" class="fixed inset-0 z-[80] hidden bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                        <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-base text-slate-900">Sinkronisasi Lintas HP</h3>
+                        <p id="syncStatusDetailText" class="text-[11px] text-emerald-700 font-semibold">Status: Terhubung ke Cloud Sync</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('cloudSyncModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-700">
+                <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2">
+                    <p class="font-extrabold text-emerald-950">1. Bagikan Link Ter-Sync ke Grup WA Tim</p>
+                    <p class="text-[11px] text-emerald-800 leading-relaxed">
+                        Salin &amp; kirim link di bawah ini ke HP lain. Saat tim membuka link ini sekali saja, HP mereka otomatis terhubung ke ruang data yang sama sehingga setiap kali Anda mengubah gambar/link, HP mereka langsung ikut terupdate!
+                    </p>
+                    <div class="flex gap-1.5 pt-1">
+                        <input id="shareableSyncLinkInput" type="text" readonly class="flex-1 px-3 py-2 rounded-xl border border-emerald-300 bg-white text-[11px] font-mono text-slate-700">
+                        <button type="button" onclick="copyShareableSyncLink()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shrink-0 shadow-sm">
+                            <i class="fa-solid fa-copy mr-1"></i> Salin
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <p class="font-extrabold text-slate-900">2. Tarik Update Terbaru Manual</p>
+                    <p class="text-[11px] text-slate-600">Jika HP rekan belum terupdate otomatis, ketuk tombol di bawah untuk mengambil pengaturan terbaru dari server:</p>
+                    <button type="button" onclick="forcePullCloudNow()" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-rotate"></i> Ambil Update Terbaru Sekarang
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" onclick="closeModal('cloudSyncModal')" class="w-full py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- UNIVERSAL CLOUD REAL-TIME SYNC MODULE (Bekerja di Netlify/Tiiny/HP)  -->
+    <!-- ===================================================================== -->
+    <script>
+        (function() {
+            const SYNC_BIN_STORAGE = 'mm_ref_sync_bin_id';
+            const JSONBLOB_API = 'https://jsonblob.com/api/jsonBlob';
+            let activeSyncBinId = null;
+            let lastRemoteTimestamp = 0;
+
+            function getSyncIdFromUrl() {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const fromQuery = urlParams.get('sync');
+                    if (fromQuery) return fromQuery.trim();
+                    if (window.location.hash && window.location.hash.includes('sync=')) {
+                        const match = window.location.hash.match(/sync=([a-zA-Z0-9_-]+)/);
+                        if (match) return match[1];
+                    }
+                } catch (e) {}
+                return null;
+            }
+
+            function updateSyncBadgeUI(isConnected, msg) {
+                const badge = document.getElementById('cloudSyncBadge');
+                const detail = document.getElementById('syncStatusDetailText');
+                if (badge) {
+                    if (isConnected) {
+                        badge.className = 'cursor-pointer inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0';
+                        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span> LIVE HP`;
+                    } else {
+                        badge.className = 'cursor-pointer inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0';
+                        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1"></span> OFFLINE`;
+                    }
+                }
+                if (detail && msg) {
+                    detail.textContent = msg;
+                }
+            }
+
+            function updateShareableUrl(binId) {
+                if (!binId) return;
+                try {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('sync', binId);
+                    window.history.replaceState({}, '', url.toString());
+                    const inputEl = document.getElementById('shareableSyncLinkInput');
+                    if (inputEl) inputEl.value = url.toString();
+                } catch (e) {}
+            }
+
+            async function createCloudRoom(initialPayload) {
+                try {
+                    const res = await fetch(JSONBLOB_API, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            updatedAt: Date.now(),
+                            state: initialPayload
+                        })
+                    });
+                    const locationHeader = res.headers.get('Location') || res.headers.get('x-jsonblob');
+                    let binId = null;
+                    if (locationHeader) {
+                        const parts = locationHeader.split('/');
+                        binId = parts[parts.length - 1];
+                    }
+                    if (binId) {
+                        activeSyncBinId = binId;
+                        localStorage.setItem(SYNC_BIN_STORAGE, binId);
+                        updateShareableUrl(binId);
+                        updateSyncBadgeUI(true, `Status: Terhubung Cloud ID (${binId.slice(0, 8)}...)`);
+                    }
+                } catch (err) {
+                    updateSyncBadgeUI(false, 'Status: Mode Offline (Cek koneksi internet)');
+                }
+            }
+
+            window.pushStateToCloud = async function(stateObj) {
+                const now = Date.now();
+                lastRemoteTimestamp = now;
+                if (!activeSyncBinId) {
+                    await createCloudRoom(stateObj);
+                    return;
+                }
+                try {
+                    const res = await fetch(`${JSONBLOB_API}/${activeSyncBinId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            updatedAt: now,
+                            state: stateObj
+                        })
+                    });
+                    if (res.ok) {
+                        updateSyncBadgeUI(true, `Status: Tersinkron ke semua HP (${new Date().toTimeString().slice(0, 5)})`);
+                    } else if (res.status === 404) {
+                        await createCloudRoom(stateObj);
+                    }
+                } catch (err) {
+                    updateSyncBadgeUI(false, 'Status: Gagal kirim ke cloud (Cek sinyal)');
+                }
+            };
+
+            window.pullStateFromCloud = async function(manualNotify = false) {
+                if (!activeSyncBinId) return;
+                try {
+                    const res = await fetch(`${JSONBLOB_API}/${activeSyncBinId}`, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (data && data.state) {
+                        if (!data.updatedAt || data.updatedAt > lastRemoteTimestamp || manualNotify) {
+                            lastRemoteTimestamp = data.updatedAt || Date.now();
+                            if (typeof window.applyRemoteState === 'function') {
+                                window.applyRemoteState(data.state);
+                            }
+                            if (manualNotify && typeof showToast === 'function') {
+                                showToast('Data terbaru berhasil ditarik dari server!');
+                            }
+                        }
+                        updateSyncBadgeUI(true, `Status: LIVE HP • Terhubung (${activeSyncBinId.slice(0, 8)}...)`);
+                    }
+                } catch (err) {
+                    if (manualNotify && typeof showToast === 'function') {
+                        showToast('Gagal mengambil data. Pastikan HP terhubung internet.', 'error');
+                    }
+                }
+            };
+
+            window.initUniversalSync = async function() {
+                const urlSyncId = getSyncIdFromUrl();
+                const savedSyncId = localStorage.getItem(SYNC_BIN_STORAGE);
+
+                if (urlSyncId) {
+                    activeSyncBinId = urlSyncId;
+                    localStorage.setItem(SYNC_BIN_STORAGE, urlSyncId);
+                    updateShareableUrl(urlSyncId);
+                    await window.pullStateFromCloud(false);
+                } else if (savedSyncId) {
+                    activeSyncBinId = savedSyncId;
+                    updateShareableUrl(savedSyncId);
+                    await window.pullStateFromCloud(false);
+                } else {
+                    await createCloudRoom(window.appState);
+                }
+
+                // Auto-check pembaruan setiap 8 detik di semua HP
+                setInterval(() => {
+                    window.pullStateFromCloud(false);
+                }, 8000);
+            };
+        })();
+    </script>
+
+    <!-- ===================================================================== -->
+    <!-- MAIN JAVASCRIPT APPLICATION LOGIC                                     -->
+    <!-- ===================================================================== -->
+    <script>
+        // --- 1. DEFAULT SVG PLACEHOLDERS ---
+        const DEFAULT_BANNER_1 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+                <defs>
+                    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#0f172a"/>
+                        <stop offset="100%" stop-color="#1e3a8a"/>
+                    </linearGradient>
+                </defs>
+                <rect width="800" height="400" fill="url(#g1)"/>
+                <circle cx="700" cy="80" r="140" fill="#f59e0b" opacity="0.15"/>
+                <rect x="44" y="55" width="90" height="10" rx="5" fill="#f59e0b"/>
+                <text x="44" y="115" fill="#ffffff" font-family="Arial, sans-serif" font-size="36" font-weight="bold">MM REF OPR HUB</text>
+                <text x="44" y="155" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="20">Portal Digital Operasional, Safety &amp; Tanggap Darurat</text>
+                <rect x="44" y="195" width="230" height="42" rx="10" fill="#f59e0b"/>
+                <text x="159" y="222" fill="#0f172a" font-family="Arial, sans-serif" font-size="15" font-weight="bold" text-anchor="middle">SAFETY FIRST • ZERO ACCIDENT</text>
+            </svg>
+        `);
+
+        const DEFAULT_BANNER_2 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+                <defs>
+                    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#064e3b"/>
+                        <stop offset="100%" stop-color="#0f172a"/>
+                    </linearGradient>
+                </defs>
+                <rect width="800" height="400" fill="url(#g2)"/>
+                <circle cx="680" cy="300" r="160" fill="#10b981" opacity="0.15"/>
+                <rect x="44" y="55" width="90" height="10" rx="5" fill="#10b981"/>
+                <text x="44" y="115" fill="#ffffff" font-family="Arial, sans-serif" font-size="34" font-weight="bold">JADWAL SHIFT &amp; P&amp;ID REALTIME</text>
+                <text x="44" y="155" fill="#a7f3d0" font-family="Arial, sans-serif" font-size="20">Akses Cepat Dokumen WI, JSA &amp; Laporan Harian</text>
+                <rect x="44" y="195" width="240" height="42" rx="10" fill="#10b981"/>
+                <text x="164" y="222" fill="#064e3b" font-family="Arial, sans-serif" font-size="15" font-weight="bold" text-anchor="middle">AKURAT • CEPAT • TERINTEGRASI</text>
+            </svg>
+        `);
+
+        const DEFAULT_BANNER_3 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+                <defs>
+                    <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#7f1d1d"/>
+                        <stop offset="100%" stop-color="#0f172a"/>
+                    </linearGradient>
+                </defs>
+                <rect width="800" height="400" fill="url(#g3)"/>
+                <circle cx="710" cy="110" r="150" fill="#ef4444" opacity="0.18"/>
+                <rect x="44" y="55" width="90" height="10" rx="5" fill="#f87171"/>
+                <text x="44" y="115" fill="#ffffff" font-family="Arial, sans-serif" font-size="34" font-weight="bold">TANGGAP DARURAT 24 JAM</text>
+                <text x="44" y="155" fill="#fecaca" font-family="Arial, sans-serif" font-size="20">Koneksi Langsung WA Ambulance, Security &amp; Fire Brigade</text>
+                <rect x="44" y="195" width="230" height="42" rx="10" fill="#ef4444"/>
+                <text x="159" y="222" fill="#ffffff" font-family="Arial, sans-serif" font-size="15" font-weight="bold" text-anchor="middle">EMERGENCY RESPONSE PTS</text>
+            </svg>
+        `);
+
+        const DEFAULT_SHIFT_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+                <rect width="900" height="560" fill="#ffffff"/>
+                <rect width="900" height="76" fill="#0f172a"/>
+                <text x="32" y="46" fill="#f59e0b" font-family="Arial, sans-serif" font-size="24" font-weight="bold">JADWAL SHIFT OPERASIONAL PTS — BULAN BERJALAN</text>
+                <text x="868" y="45" fill="#94a3b8" font-family="Arial, sans-serif" font-size="14" text-anchor="end">Cubit 2 jari untuk zoom jadwal</text>
+                <rect x="30" y="96" width="840" height="44" rx="6" fill="#e2e8f0"/>
+                <text x="50" y="124" fill="#1e293b" font-family="Arial, sans-serif" font-size="15" font-weight="bold">REGU / GRUP</text>
+                <text x="230" y="124" fill="#1e293b" font-family="Arial, sans-serif" font-size="15" font-weight="bold">SEN</text>
+                <text x="320" y="124" fill="#1e293b" font-family="Arial, sans-serif" font-size="15" font-weight="bold">SEL</text>
+                <text x="410" y="124" fill="#1e293b" font-family="Arial, sans-serif" font-size="15" font-weight="bold">RAB</text>
+                <text x="500" y="124" fill="#1e293b" font-family="Arial, sans-serif" font-size="15" font-weight="bold">KAM</text>
+                <text x="590" y="124" fill="#1e293b" font-family="Arial, sans-serif" font-size="15" font-weight="bold">JUM</text>
+                <text x="680" y="124" fill="#1e293b" font-family="Arial, sans-serif" font-size="15" font-weight="bold">SAB</text>
+                <text x="770" y="124" fill="#1e293b" font-family="Arial, sans-serif" font-size="15" font-weight="bold">MIN</text>
+
+                <rect x="30" y="152" width="840" height="62" rx="6" fill="#f8fafc" stroke="#cbd5e1"/>
+                <text x="50" y="188" fill="#0f172a" font-family="Arial, sans-serif" font-size="16" font-weight="bold">GROUP A (Alpha)</text>
+                <rect x="218" y="165" width="60" height="36" rx="6" fill="#dbeafe"/><text x="248" y="189" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">PAGI</text>
+                <rect x="308" y="165" width="60" height="36" rx="6" fill="#dbeafe"/><text x="338" y="189" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">PAGI</text>
+                <rect x="398" y="165" width="60" height="36" rx="6" fill="#fef3c7"/><text x="428" y="189" fill="#b45309" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">SORE</text>
+                <rect x="488" y="165" width="60" height="36" rx="6" fill="#fef3c7"/><text x="518" y="189" fill="#b45309" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">SORE</text>
+                <rect x="578" y="165" width="60" height="36" rx="6" fill="#e0e7ff"/><text x="608" y="189" fill="#4338ca" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">MLM</text>
+                <rect x="668" y="165" width="60" height="36" rx="6" fill="#e0e7ff"/><text x="698" y="189" fill="#4338ca" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">MLM</text>
+                <rect x="758" y="165" width="60" height="36" rx="6" fill="#fee2e2"/><text x="788" y="189" fill="#b91c1c" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">OFF</text>
+
+                <rect x="30" y="226" width="840" height="62" rx="6" fill="#f8fafc" stroke="#cbd5e1"/>
+                <text x="50" y="262" fill="#0f172a" font-family="Arial, sans-serif" font-size="16" font-weight="bold">GROUP B (Bravo)</text>
+                <rect x="218" y="239" width="60" height="36" rx="6" fill="#fef3c7"/><text x="248" y="263" fill="#b45309" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">SORE</text>
+                <rect x="308" y="239" width="60" height="36" rx="6" fill="#e0e7ff"/><text x="338" y="263" fill="#4338ca" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">MLM</text>
+                <rect x="398" y="239" width="60" height="36" rx="6" fill="#e0e7ff"/><text x="428" y="263" fill="#4338ca" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">MLM</text>
+                <rect x="488" y="239" width="60" height="36" rx="6" fill="#fee2e2"/><text x="518" y="263" fill="#b91c1c" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">OFF</text>
+                <rect x="578" y="239" width="60" height="36" rx="6" fill="#fee2e2"/><text x="608" y="263" fill="#b91c1c" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">OFF</text>
+                <rect x="668" y="239" width="60" height="36" rx="6" fill="#dbeafe"/><text x="698" y="263" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">PAGI</text>
+                <rect x="758" y="239" width="60" height="36" rx="6" fill="#dbeafe"/><text x="788" y="263" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">PAGI</text>
+
+                <rect x="30" y="300" width="840" height="62" rx="6" fill="#f8fafc" stroke="#cbd5e1"/>
+                <text x="50" y="336" fill="#0f172a" font-family="Arial, sans-serif" font-size="16" font-weight="bold">GROUP C (Charlie)</text>
+                <rect x="218" y="313" width="60" height="36" rx="6" fill="#e0e7ff"/><text x="248" y="337" fill="#4338ca" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">MLM</text>
+                <rect x="308" y="313" width="60" height="36" rx="6" fill="#fee2e2"/><text x="338" y="337" fill="#b91c1c" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">OFF</text>
+                <rect x="398" y="313" width="60" height="36" rx="6" fill="#fee2e2"/><text x="428" y="337" fill="#b91c1c" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">OFF</text>
+                <rect x="488" y="313" width="60" height="36" rx="6" fill="#dbeafe"/><text x="518" y="337" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">PAGI</text>
+                <rect x="578" y="313" width="60" height="36" rx="6" fill="#dbeafe"/><text x="608" y="337" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">PAGI</text>
+                <rect x="668" y="313" width="60" height="36" rx="6" fill="#fef3c7"/><text x="698" y="337" fill="#b45309" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">SORE</text>
+                <rect x="758" y="313" width="60" height="36" rx="6" fill="#fef3c7"/><text x="788" y="337" fill="#b45309" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">SORE</text>
+
+                <rect x="30" y="395" width="840" height="125" rx="10" fill="#f1f5f9" stroke="#cbd5e1"/>
+                <text x="50" y="425" fill="#0f172a" font-family="Arial, sans-serif" font-size="15" font-weight="bold">KETERANGAN JAM KERJA SHIFT:</text>
+                <text x="50" y="455" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="bold">• PAGI : 07:00 – 15:00 WIB (Handover 06:45)</text>
+                <text x="50" y="482" fill="#b45309" font-family="Arial, sans-serif" font-size="14" font-weight="bold">• SORE : 15:00 – 23:00 WIB (Handover 14:45)</text>
+                <text x="460" y="455" fill="#4338ca" font-family="Arial, sans-serif" font-size="14" font-weight="bold">• MALAM : 23:00 – 07:00 WIB (Handover 22:45)</text>
+                <text x="460" y="482" fill="#b91c1c" font-family="Arial, sans-serif" font-size="14" font-weight="bold">• OFF : Libur / Standby On-Call</text>
+            </svg>
+        `);
+
+        const DEFAULT_PID_SVG_1 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600">
+                <rect width="960" height="600" fill="#0f172a"/>
+                <g stroke="#1e293b" stroke-width="1">
+                    <line x1="0" y1="100" x2="960" y2="100"/><line x1="0" y1="200" x2="960" y2="200"/>
+                    <line x1="0" y1="300" x2="960" y2="300"/><line x1="0" y1="400" x2="960" y2="400"/>
+                    <line x1="0" y1="500" x2="960" y2="500"/><line x1="160" y1="0" x2="160" y2="600"/>
+                    <line x1="320" y1="0" x2="320" y2="600"/><line x1="480" y1="0" x2="480" y2="600"/>
+                    <line x1="640" y1="0" x2="640" y2="600"/><line x1="800" y1="0" x2="800" y2="600"/>
+                </g>
+                <rect x="16" y="16" width="928" height="568" fill="none" stroke="#38bdf8" stroke-width="2"/>
+                <rect x="80" y="160" width="130" height="220" rx="16" fill="#1e293b" stroke="#38bdf8" stroke-width="3"/>
+                <rect x="84" y="250" width="122" height="126" rx="10" fill="#0284c7" opacity="0.55"/>
+                <text x="145" y="210" fill="#f8fafc" font-family="monospace" font-size="16" font-weight="bold" text-anchor="middle">T-101</text>
+                <text x="145" y="232" fill="#7dd3fc" font-family="monospace" font-size="12" text-anchor="middle">FEED TANK</text>
+                <polyline points="210,340 340,340" fill="none" stroke="#10b981" stroke-width="6"/>
+                <circle cx="375" cy="340" r="32" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+                <polygon points="365,322 398,340 365,358" fill="#10b981"/>
+                <text x="375" y="395" fill="#f8fafc" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle">P-101A</text>
+                <polyline points="407,340 490,340 490,210 610,210" fill="none" stroke="#10b981" stroke-width="6"/>
+                <rect x="610" y="165" width="170" height="90" rx="45" fill="#1e293b" stroke="#f43f5e" stroke-width="3"/>
+                <text x="695" y="280" fill="#f8fafc" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle">E-101 (COOLER)</text>
+                <polyline points="780,210 885,210" fill="none" stroke="#10b981" stroke-width="6"/>
+                <rect x="520" y="465" width="408" height="104" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                <text x="536" y="492" fill="#f59e0b" font-family="monospace" font-size="15" font-weight="bold">P&amp;ID SHEET 1 — UNIT 01 FEED &amp; PUMPING</text>
+                <text x="536" y="518" fill="#cbd5e1" font-family="monospace" font-size="12">DOC NO: PTS-PID-001 | CUBIT 2 JARI UNTUK ZOOM</text>
+                <text x="536" y="544" fill="#38bdf8" font-family="monospace" font-size="12">Gunakan tab di atas untuk pindah gambar P&amp;ID lain</text>
+            </svg>
+        `);
+
+        const DEFAULT_PID_SVG_2 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600">
+                <rect width="960" height="600" fill="#0f172a"/>
+                <rect x="16" y="16" width="928" height="568" fill="none" stroke="#10b981" stroke-width="2"/>
+                <rect x="120" y="130" width="150" height="280" rx="20" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+                <text x="195" y="270" fill="#f8fafc" font-family="monospace" font-size="18" font-weight="bold" text-anchor="middle">V-201</text>
+                <text x="195" y="295" fill="#6ee7b7" font-family="monospace" font-size="13" text-anchor="middle">SEPARATOR</text>
+                <polyline points="270,220 520,220" fill="none" stroke="#38bdf8" stroke-width="6"/>
+                <circle cx="560" cy="220" r="36" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
+                <text x="560" y="225" fill="#fbbf24" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle">PSV-201</text>
+                <polyline points="596,220 840,220" fill="none" stroke="#38bdf8" stroke-width="6"/>
+                <rect x="520" y="465" width="408" height="104" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+                <text x="536" y="492" fill="#10b981" font-family="monospace" font-size="15" font-weight="bold">P&amp;ID SHEET 2 — UNIT 02 SEPARATOR &amp; RELIEF</text>
+                <text x="536" y="518" fill="#cbd5e1" font-family="monospace" font-size="12">DOC NO: PTS-PID-002 | CUBIT 2 JARI UNTUK ZOOM</text>
+                <text x="536" y="544" fill="#a7f3d0" font-family="monospace" font-size="12">Klik "Atur Gambar" untuk tambah/ganti gambar P&amp;ID</text>
+            </svg>
+        `);
+
+        const DEFAULT_SAMPLE_PDF = 'data:text/html;charset=utf-8,' + encodeURIComponent(`
+            <!DOCTYPE html>
+            <html>
+            <head><style>
+                body { font-family: Arial, sans-serif; padding: 28px; color: #0f172a; line-height: 1.5; }
+                .header { border-bottom: 3px solid #0f172a; padding-bottom: 12px; margin-bottom: 18px; }
+                .badge { background: #10b981; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+                table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+                th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+                th { background: #f1f5f9; }
+            </style></head>
+            <body>
+                <div class="header">
+                    <span class="badge">PDF GENERATED • TERKIRIM KE EMAIL</span>
+                    <h2 style="margin:8px 0 4px;">HASIL GOOGLE FORM — LAPORAN OPERASIONAL SHIFT</h2>
+                    <p style="margin:0; font-size:12px; color:#475569;">MM Ref Opr Hub • Arsip Otomatis Spreadsheet &amp; Email</p>
+                </div>
+                <table>
+                    <tr><th>Parameter Google Form</th><th>Hasil Isian Lapangan</th></tr>
+                    <tr><td>Regu / Shift</td><td>Group A — Shift Pagi (07:00 - 15:00 WIB)</td></tr>
+                    <tr><td>Tekanan Feed Tank T-101</td><td>Normal (1.2 Bar) • Level 78%</td></tr>
+                    <tr><td>Pompa P-101A / P-101B</td><td>P-101A Running Normal • P-101B Standby</td></tr>
+                    <tr><td>Status Safety &amp; Housekeeping</td><td>Aman, Zero Incident, Area Bersih</td></tr>
+                </table>
+                <p style="margin-top:18px; font-size:11px; color:#64748b;">Gunakan cubit 2 jari pada layar HP untuk memperbesar dokumen PDF ini.</p>
+            </body>
+            </html>
+        `);
+
+        // --- 2. INITIAL STATE & REAL-TIME SYNC ---
+        const STORAGE_KEY = 'mm_ref_opr_hub_v5';
+        const ADMIN_PASSCODE = 'MM05';
+
+        const defaultState = {
+            appTexts: {
+                mainTitle: 'MM Ref Opr Hub',
+                carouselBadge: 'INFO & DOKUMENTASI',
+                emergencySectionTitle: 'Darurat & Tanggap Cepat PTS',
+                menuSectionTitle: 'Menu Operasional',
+                addMenuBtnLabel: '+ Tambah Menu / Link Lainnya',
+                reportSectionTitle: 'Riwayat Report & PDF',
+                reportSectionSubtitle: 'Hasil Google Form, Spreadsheet & PDF Email'
+            },
+            banners: [
+                { id: 'b1', image: DEFAULT_BANNER_1, caption: 'Safety First — Zero Accident di Area Operasional' },
+                { id: 'b2', image: DEFAULT_BANNER_2, caption: 'Cek Jadwal Shift, P&ID & Dokumen WI/JSA Terkini' },
+                { id: 'b3', image: DEFAULT_BANNER_3, caption: 'Layanan Tanggap Darurat PTS Siaga 24 Jam' }
+            ],
+            emergencies: [
+                {
+                    id: 'ambulance',
+                    name: 'Ambulance PTS',
+                    shortName: 'Ambulance',
+                    icon: 'fa-truck-medical',
+                    color: 'rose',
+                    phone: '6281234567890',
+                    message: 'DARURAT MEDIS PTS: Mohon bantuan Ambulance segera ke lokasi...'
+                },
+                {
+                    id: 'security',
+                    name: 'Security PTS',
+                    shortName: 'Security',
+                    icon: 'fa-shield-halved',
+                    color: 'blue',
+                    phone: '6281234567891',
+                    message: 'LAPORAN SECURITY PTS: Mohon bantuan personil keamanan ke area...'
+                },
+                {
+                    id: 'fire',
+                    name: 'Fire Brigade PTS',
+                    shortName: 'Fire Brigade',
+                    icon: 'fa-fire-extinguisher',
+                    color: 'amber',
+                    phone: '6281234567892',
+                    message: 'DARURAT KEBAKARAN PTS: Mohon tim Fire Brigade merapat ke lokasi...'
+                }
+            ],
+            pidSheets: [
+                { id: 'pid_1', name: 'P&ID Unit 01 (Feed)', image: DEFAULT_PID_SVG_1, defaultImage: DEFAULT_PID_SVG_1 },
+                { id: 'pid_2', name: 'P&ID Unit 02 (Separator)', image: DEFAULT_PID_SVG_2, defaultImage: DEFAULT_PID_SVG_2 }
+            ],
+            menus: [
+                {
+                    id: 'shift',
+                    title: 'Jadwal Shift',
+                    desc: 'Lihat jadwal regu & rotasi kerja',
+                    type: 'image',
+                    target: DEFAULT_SHIFT_SVG,
+                    defaultImage: DEFAULT_SHIFT_SVG,
+                    icon: 'fa-calendar-days',
+                    color: 'blue',
+                    isCore: true
+                },
+                {
+                    id: 'report',
+                    title: 'Link Report',
+                    desc: 'Input Google Form laporan harian',
+                    type: 'link',
+                    target: 'https://forms.google.com',
+                    icon: 'fa-file-signature',
+                    color: 'amber',
+                    isCore: true
+                },
+                {
+                    id: 'wijsa',
+                    title: 'Link WI & JSA',
+                    desc: 'Work Instruction & Safety Analysis',
+                    type: 'link',
+                    target: 'https://drive.google.com',
+                    icon: 'fa-helmet-safety',
+                    color: 'indigo',
+                    isCore: true
+                },
+                {
+                    id: 'pid',
+                    title: 'Gambar P&ID',
+                    desc: 'Multi-sheet diagram (Pinch Zoom)',
+                    type: 'pid_multi',
+                    target: '',
+                    icon: 'fa-diagram-project',
+                    color: 'slate',
+                    isCore: true
+                },
+                {
+                    id: 'inventory',
+                    title: 'Inventory Material',
+                    desc: 'Koneksi langsung ke App Web Inventory',
+                    type: 'link',
+                    target: 'https://docs.google.com/spreadsheets',
+                    icon: 'fa-boxes-stacked',
+                    color: 'emerald',
+                    isCore: true
+                }
+            ],
+            reportFormUrl: 'https://forms.google.com',
+            reportSheetUrl: 'https://docs.google.com/spreadsheets',
+            reports: [
+                {
+                    id: 'rep1',
+                    title: 'Hasil Form Shift Pagi — Unit 01 & 02',
+                    pic: 'Budi Santoso (Group A)',
+                    emailStatus: 'PDF Terkirim ke Email',
+                    time: 'Hari ini, 14:50 WIB',
+                    note: 'Operasional normal, T-101 level 78%, P-101A running normal.',
+                    pdfUrl: DEFAULT_SAMPLE_PDF
+                },
+                {
+                    id: 'rep2',
+                    title: 'Hasil Form Checklist Safety & Fire System',
+                    pic: 'Andi Wijaya (HSE/Opr)',
+                    emailStatus: 'PDF Terkirim ke Email',
+                    time: 'Kemarin, 22:40 WIB',
+                    note: 'Seluruh APAR dan Hydrant pressure dalam batas aman.',
+                    pdfUrl: DEFAULT_SAMPLE_PDF
+                }
+            ]
+        };
+
+        window.appState = loadState();
+        let isEditMode = false;
+        let isAdminAuthenticated = false;
+        let pendingAuthCallback = null;
+        let activeImageMenuId = null;
+        let activePidSheetIndex = 0;
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return JSON.parse(JSON.stringify(defaultState));
+                const parsed = JSON.parse(raw);
+                return {
+                    ...defaultState,
+                    ...parsed,
+                    appTexts: { ...defaultState.appTexts, ...(parsed.appTexts || {}) },
+                    banners: (parsed.banners && parsed.banners.length === 3) ? parsed.banners : defaultState.banners,
+                    emergencies: parsed.emergencies || defaultState.emergencies,
+                    pidSheets: (parsed.pidSheets && parsed.pidSheets.length > 0) ? parsed.pidSheets : defaultState.pidSheets,
+                    menus: parsed.menus || defaultState.menus,
+                    reports: parsed.reports || defaultState.reports
+                };
+            } catch (e) {
+                console.error('Gagal memuat data localStorage:', e);
+                return JSON.parse(JSON.stringify(defaultState));
+            }
+        }
+
+        function saveState(skipCloud = false) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(window.appState));
+                if (!skipCloud && typeof window.pushStateToCloud === 'function') {
+                    window.pushStateToCloud(window.appState);
+                }
+            } catch (e) {
+                showToast('Memori penyimpanan penuh! Gunakan link URL jika ukuran file terlalu besar.', 'error');
+            }
+        }
+
+        window.applyRemoteState = function(remoteState) {
+            if (!remoteState) return;
+            window.appState = {
+                ...defaultState,
+                ...remoteState,
+                appTexts: { ...defaultState.appTexts, ...(remoteState.appTexts || {}) },
+                banners: (remoteState.banners && remoteState.banners.length === 3) ? remoteState.banners : defaultState.banners,
+                emergencies: remoteState.emergencies || defaultState.emergencies,
+                pidSheets: (remoteState.pidSheets && remoteState.pidSheets.length > 0) ? remoteState.pidSheets : defaultState.pidSheets,
+                menus: remoteState.menus || defaultState.menus,
+                reports: remoteState.reports || defaultState.reports
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(window.appState));
+            renderAll();
+        };
+
+        // --- 3. ADMIN PASSWORD PROTECTION (MM05) ---
+        function requireAdminAuth(callback) {
+            if (isAdminAuthenticated || isEditMode) {
+                callback();
+                return;
+            }
+            pendingAuthCallback = callback;
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('passwordErrorMsg').classList.add('hidden');
+            document.getElementById('passwordModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('adminPasswordInput').focus(), 120);
+        }
+
+        function verifyAdminPassword(e) {
+            e.preventDefault();
+            const val = document.getElementById('adminPasswordInput').value.trim();
+            if (val.toUpperCase() === ADMIN_PASSCODE) {
+                isAdminAuthenticated = true;
+                closeModal('passwordModal');
+                showToast('Akses admin dibuka!');
+                if (typeof pendingAuthCallback === 'function') {
+                    const fn = pendingAuthCallback;
+                    pendingAuthCallback = null;
+                    fn();
+                }
+            } else {
+                document.getElementById('passwordErrorMsg').classList.remove('hidden');
+                document.getElementById('adminPasswordInput').value = '';
+                document.getElementById('adminPasswordInput').focus();
+            }
+        }
+
+        // --- 4. CAROUSEL (3 HEADER PHOTOS) ---
+        let currentSlideIndex = 0;
+        let carouselTimer = null;
+
+        function renderCarousel() {
+            const track = document.getElementById('carouselTrack');
+            const dotsContainer = document.getElementById('carouselDots');
+            if (!track || !dotsContainer) return;
+
+            track.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            window.appState.banners.forEach((banner, idx) => {
+                const slide = document.createElement('div');
+                slide.className = 'w-full h-full shrink-0 relative';
+                slide.innerHTML = `<img src="${banner.image}" alt="Banner ${idx + 1}" class="w-full h-full object-cover">`;
+                track.appendChild(slide);
+
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.ariaLabel = `Slide ${idx + 1}`;
+                dot.className = `h-1.5 rounded-full transition-all ${idx === currentSlideIndex ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/50 hover:bg-white/80'}`;
+                dot.onclick = () => goToSlide(idx);
+                dotsContainer.appendChild(dot);
+            });
+
+            updateCarouselPosition();
+        }
+
+        function updateCarouselPosition() {
+            const track = document.getElementById('carouselTrack');
+            const captionEl = document.getElementById('carouselCaption');
+            const dots = document.getElementById('carouselDots').children;
+            if (!track) return;
+
+            track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+            const currentBanner = window.appState.banners[currentSlideIndex];
+            if (currentBanner && captionEl) {
+                captionEl.textContent = currentBanner.caption || '';
+            }
+
+            Array.from(dots).forEach((dot, idx) => {
+                dot.className = `h-1.5 rounded-full transition-all ${idx === currentSlideIndex ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/50 hover:bg-white/80'}`;
+            });
+        }
+
+        function moveCarousel(step) {
+            const total = window.appState.banners.length;
+            currentSlideIndex = (currentSlideIndex + step + total) % total;
+            updateCarouselPosition();
+            resetCarouselAutoplay();
+        }
+
+        function goToSlide(index) {
+            currentSlideIndex = index;
+            updateCarouselPosition();
+            resetCarouselAutoplay();
+        }
+
+        function resetCarouselAutoplay() {
+            if (carouselTimer) clearInterval(carouselTimer);
+            carouselTimer = setInterval(() => moveCarousel(1), 4500);
+        }
+
+        let tempBannerEdits = [];
+        function openBannerEditorModal() {
+            requireAdminAuth(() => {
+                tempBannerEdits = JSON.parse(JSON.stringify(window.appState.banners));
+                const container = document.getElementById('bannerSlotsContainer');
+                container.innerHTML = '';
+
+                tempBannerEdits.forEach((b, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5';
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold text-slate-800">Foto Header #${idx + 1}</span>
+                            <label class="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[11px] font-bold cursor-pointer hover:bg-blue-700">
+                                <i class="fa-solid fa-upload mr-1"></i> Upload HP
+                                <input type="file" accept="image/*" class="hidden" onchange="handleBannerFileSelect(event, ${idx})">
+                            </label>
+                        </div>
+                        <img id="bannerPreview_${idx}" src="${b.image}" class="w-full h-24 object-cover rounded-xl border border-slate-300 bg-slate-900">
+                        <input type="text" value="${b.caption.replace(/"/g, '&quot;')}" oninput="tempBannerEdits[${idx}].caption = this.value" placeholder="Keterangan foto #${idx + 1}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs">
+                        <input type="url" value="${b.image.startsWith('http') ? b.image : ''}" oninput="updateBannerUrlPreview(${idx}, this.value)" placeholder="Atau tempel link URL gambar..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs">
+                    `;
+                    container.appendChild(card);
+                });
+
+                document.getElementById('bannerEditorModal').classList.remove('hidden');
+            });
+        }
+
+        function handleBannerFileSelect(event, idx) {
+            const file = event.target.files[0];
+            if (!file) return;
+            compressImageFile(file, 1000, 0.8, (dataUrl) => {
+                tempBannerEdits[idx].image = dataUrl;
+                const preview = document.getElementById(`bannerPreview_${idx}`);
+                if (preview) preview.src = dataUrl;
+                showToast(`Foto #${idx + 1} siap disimpan!`);
+            });
+        }
+
+        function updateBannerUrlPreview(idx, url) {
+            const trimmed = url.trim();
+            if (trimmed) {
+                tempBannerEdits[idx].image = trimmed;
+                const preview = document.getElementById(`bannerPreview_${idx}`);
+                if (preview) preview.src = trimmed;
+            }
+        }
+
+        function saveBannerChanges() {
+            window.appState.banners = tempBannerEdits;
+            saveState();
+            renderCarousel();
+            closeModal('bannerEditorModal');
+            showToast('3 Foto Header diperbarui & disinkronkan!');
+        }
+
+        // --- 5. APP TEXTS & TITLES EDITOR ---
+        function applyAppTextsToDOM() {
+            const t = window.appState.appTexts || defaultState.appTexts;
+            document.title = `${t.mainTitle} — Portal Lapangan`;
+            document.getElementById('appMainTitle').textContent = t.mainTitle;
+            document.getElementById('carouselBadgeText').textContent = t.carouselBadge;
+            document.getElementById('emergencySectionTitle').textContent = t.emergencySectionTitle;
+            document.getElementById('menuSectionTitle').textContent = t.menuSectionTitle;
+            document.getElementById('addMenuBtnLabel').textContent = t.addMenuBtnLabel;
+            document.getElementById('reportSectionTitle').textContent = t.reportSectionTitle;
+            document.getElementById('reportSectionSubtitle').textContent = t.reportSectionSubtitle;
+            document.getElementById('reportModalHeaderTitle').textContent = t.reportSectionTitle;
+        }
+
+        function openAppTextEditorModal() {
+            requireAdminAuth(() => {
+                const t = window.appState.appTexts || defaultState.appTexts;
+                document.getElementById('txtMainTitle').value = t.mainTitle;
+                document.getElementById('txtCarouselBadge').value = t.carouselBadge;
+                document.getElementById('txtEmergencyTitle').value = t.emergencySectionTitle;
+                document.getElementById('txtMenuSectionTitle').value = t.menuSectionTitle;
+                document.getElementById('txtAddMenuBtnLabel').value = t.addMenuBtnLabel;
+                document.getElementById('txtReportSectionTitle').value = t.reportSectionTitle;
+                document.getElementById('txtReportSectionSubtitle').value = t.reportSectionSubtitle;
+                document.getElementById('appTextEditorModal').classList.remove('hidden');
+            });
+        }
+
+        function handleSaveAppTexts(e) {
+            e.preventDefault();
+            window.appState.appTexts = {
+                mainTitle: document.getElementById('txtMainTitle').value.trim() || 'MM Ref Opr Hub',
+                carouselBadge: document.getElementById('txtCarouselBadge').value.trim() || 'INFO & DOKUMENTASI',
+                emergencySectionTitle: document.getElementById('txtEmergencyTitle').value.trim() || 'Darurat & Tanggap Cepat PTS',
+                menuSectionTitle: document.getElementById('txtMenuSectionTitle').value.trim() || 'Menu Operasional',
+                addMenuBtnLabel: document.getElementById('txtAddMenuBtnLabel').value.trim() || '+ Tambah Menu / Link Lainnya',
+                reportSectionTitle: document.getElementById('txtReportSectionTitle').value.trim() || 'Riwayat Report & PDF',
+                reportSectionSubtitle: document.getElementById('txtReportSectionSubtitle').value.trim() || 'Hasil Google Form, Spreadsheet & PDF Email'
+            };
+            saveState();
+            applyAppTextsToDOM();
+            closeModal('appTextEditorModal');
+            showToast('Judul & teks berhasil diperbarui ke semua HP!');
+        }
+
+        // --- 6. CLOCK, TOAST & EDIT MODE ---
+        function updateLiveClock() {
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            
+            const dayName = days[now.getDay()];
+            const dateStr = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+            const timeStr = now.toTimeString().slice(0, 8);
+            
+            const clockEl = document.getElementById('liveClock');
+            if (clockEl) clockEl.textContent = `${dayName}, ${dateStr} • ${timeStr} WIB`;
+        }
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const bgClass = type === 'error' ? 'bg-rose-600' : 'bg-slate-900 border border-slate-700';
+            const iconClass = type === 'error' ? 'fa-circle-exclamation text-white' : 'fa-circle-check text-emerald-400';
+
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-2.5 transition-all duration-300 transform translate-y-0 opacity-100`;
+            toast.innerHTML = `<i class="fa-solid ${iconClass} text-sm shrink-0"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function toggleEditMode() {
+            if (!isEditMode) {
+                requireAdminAuth(() => {
+                    isEditMode = true;
+                    applyEditModeUI();
+                    showToast('Mode Edit aktif: Perubahan otomatis sinkron ke semua HP.');
+                });
+            } else {
+                isEditMode = false;
+                applyEditModeUI();
+            }
+        }
+
+        function applyEditModeUI() {
+            const btn = document.getElementById('toggleEditBtn');
+            const btnText = document.getElementById('editBtnText');
+            const banner = document.getElementById('editModeBanner');
+            const editBannerBtn = document.getElementById('editBannerBtn');
+            const icon = btn.querySelector('i');
+
+            if (isEditMode) {
+                btn.classList.remove('bg-slate-800', 'text-white');
+                btn.classList.add('bg-amber-500', 'text-slate-950', 'border-amber-400');
+                icon.className = 'fa-solid fa-unlock text-slate-950';
+                btnText.textContent = 'Selesai';
+                banner.classList.remove('hidden');
+                editBannerBtn.classList.remove('hidden');
+            } else {
+                btn.classList.add('bg-slate-800', 'text-white');
+                btn.classList.remove('bg-amber-500', 'text-slate-950', 'border-amber-400');
+                icon.className = 'fa-solid fa-lock text-amber-400';
+                btnText.textContent = 'Edit';
+                banner.classList.add('hidden');
+                editBannerBtn.classList.add('hidden');
+            }
+            renderAll();
+        }
+
+        // --- 7. EMERGENCY CONTACTS WITH BIG-TEXT CONFIRMATION DIALOG ---
+        function renderEmergencies() {
+            const grid = document.getElementById('emergencyGrid');
+            grid.innerHTML = '';
+
+            const styleMap = {
+                rose: {
+                    card: 'bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-rose-600/20',
+                    badge: 'bg-rose-800/60 text-rose-100'
+                },
+                blue: {
+                    card: 'bg-blue-700 hover:bg-blue-800 text-white border-blue-800 shadow-blue-700/20',
+                    badge: 'bg-blue-900/60 text-blue-100'
+                },
+                amber: {
+                    card: 'bg-amber-500 hover:bg-amber-600 text-slate-950 border-amber-600 shadow-amber-500/20',
+                    badge: 'bg-amber-700/20 text-slate-900'
+                }
+            };
+
+            window.appState.emergencies.forEach(item => {
+                const theme = styleMap[item.color] || styleMap.rose;
+                const cleanPhone = item.phone.replace(/\D/g, '');
+
+                const el = document.createElement('div');
+                el.className = 'relative';
+
+                if (isEditMode) {
+                    el.innerHTML = `
+                        <button type="button" onclick="openEditEmergencyModal('${item.id}')" class="w-full h-full min-h-[96px] p-2.5 rounded-2xl border-2 border-dashed border-amber-500 bg-white text-slate-800 flex flex-col items-center justify-center text-center shadow-sm active:scale-95 transition">
+                            <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-1">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </div>
+                            <span class="text-[11px] font-extrabold leading-tight">${item.shortName}</span>
+                            <span class="text-[9px] text-slate-500 font-mono mt-0.5 truncate w-full">${cleanPhone}</span>
+                        </button>
+                    `;
+                } else {
+                    el.innerHTML = `
+                        <button type="button" onclick="promptEmergencyCall('${item.id}')" class="w-full h-full min-h-[96px] p-2.5 rounded-2xl border ${theme.card} shadow-md flex flex-col items-center justify-center text-center active:scale-95 transition">
+                            <div class="w-9 h-9 rounded-full ${theme.badge} flex items-center justify-center mb-1.5">
+                                <i class="fa-solid ${item.icon} text-base"></i>
+                            </div>
+                            <span class="text-xs font-extrabold leading-tight tracking-tight">${item.shortName}</span>
+                            <span class="text-[10px] font-semibold opacity-90 mt-0.5 flex items-center gap-1">
+                                <i class="fa-brands fa-whatsapp"></i> WA PTS
+                            </span>
+                        </button>
+                    `;
+                }
+                grid.appendChild(el);
+            });
+        }
+
+        function promptEmergencyCall(id) {
+            const item = window.appState.emergencies.find(e => e.id === id);
+            if (!item) return;
+
+            const cleanPhone = item.phone.replace(/\D/g, '');
+            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(item.message || '')}`;
+
+            document.getElementById('emergConfirmIcon').className = `fa-solid ${item.icon}`;
+            document.getElementById('emergConfirmHeadline').textContent = `HUBUNGI ${item.name.toUpperCase()}?`;
+            document.getElementById('emergConfirmProceedBtn').href = waUrl;
+
+            document.getElementById('emergencyConfirmModal').classList.remove('hidden');
+        }
+
+        // --- 8. RENDER MAIN OPERATIONAL MENUS ---
+        function renderMenus() {
+            const grid = document.getElementById('mainMenuGrid');
+            grid.innerHTML = '';
+
+            const colorClasses = {
+                blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'hover:border-blue-400', tag: 'bg-blue-100 text-blue-700' },
+                amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'hover:border-amber-400', tag: 'bg-amber-100 text-amber-800' },
+                emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'hover:border-emerald-400', tag: 'bg-emerald-100 text-emerald-700' },
+                indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'hover:border-indigo-400', tag: 'bg-indigo-100 text-indigo-700' },
+                rose: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'hover:border-rose-400', tag: 'bg-rose-100 text-rose-700' },
+                slate: { bg: 'bg-slate-100', text: 'text-slate-700', border: 'hover:border-slate-400', tag: 'bg-slate-200 text-slate-700' }
+            };
+
+            const typeBadgeText = {
+                image: 'GAMBAR',
+                pid_multi: `${window.appState.pidSheets.length} GAMBAR`,
+                link: 'WEB LINK',
+                pdf: 'PDF ZOOM',
+                whatsapp: 'WHATSAPP'
+            };
+
+            window.appState.menus.forEach(menu => {
+                const c = colorClasses[menu.color] || colorClasses.blue;
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = `relative text-left bg-white p-4 rounded-2xl border ${isEditMode ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200 ' + c.border} shadow-sm hover:shadow-md transition active:scale-[0.98] flex flex-col justify-between min-h-[126px]`;
+
+                card.onclick = () => {
+                    if (isEditMode) {
+                        openEditMenuModal(menu.id);
+                    } else {
+                        handleMenuClick(menu);
+                    }
+                };
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between w-full mb-3">
+                        <div class="w-11 h-11 rounded-xl ${c.bg} ${c.text} flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid ${menu.icon}"></i>
+                        </div>
+                        ${isEditMode 
+                            ? `<span class="px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 text-[10px] font-extrabold"><i class="fa-solid fa-pen mr-0.5"></i> Ubah</span>`
+                            : `<span class="px-2 py-0.5 rounded-md ${c.tag} text-[9px] font-extrabold tracking-wider">${typeBadgeText[menu.type] || 'MENU'}</span>`
+                        }
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-slate-900 leading-snug line-clamp-1">${menu.title}</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-tight">${menu.desc || 'Ketuk untuk membuka'}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function handleMenuClick(menu) {
+            if (menu.type === 'image' || menu.type === 'pid_multi') {
+                openImageViewer(menu.id);
+            } else if (menu.type === 'pdf') {
+                openPdfViewer(menu.title, menu.target);
+            } else if (menu.type === 'whatsapp') {
+                const phone = menu.target.replace(/\D/g, '');
+                window.open(`https://wa.me/${phone}`, '_blank', 'noopener');
+            } else {
+                if (!menu.target || menu.target === '#') {
+                    showToast('URL belum diatur. Ketuk tombol Edit (Sandi: MM05) untuk mengisi link.', 'error');
+                    return;
+                }
+                window.open(menu.target, '_blank', 'noopener');
+            }
+        }
+
+        function openInventoryWebApp() {
+            const invMenu = window.appState.menus.find(m => m.id === 'inventory');
+            if (invMenu && invMenu.target && invMenu.target !== '#') {
+                window.open(invMenu.target, '_blank', 'noopener');
+            } else {
+                showToast('Link App Web Inventory belum diisi. Edit menu Inventory (Sandi: MM05).', 'error');
+            }
+        }
+
+        // --- 9. UNIVERSAL 2-FINGER PINCH ZOOM VIEWER (MULTI-P&ID, IMAGES & PDF) ---
+        let zoomScale = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let initialPinchDist = null;
+        let initialPinchScale = 1;
+        let viewerMode = 'image'; // 'image' | 'pid_multi' | 'pdf'
+
+        function openImageViewer(menuId) {
+            const menu = window.appState.menus.find(m => m.id === menuId);
+            if (!menu) return;
+
+            activeImageMenuId = menuId;
+            const imgEl = document.getElementById('viewerImageElement');
+            const pdfWrap = document.getElementById('viewerPdfWrapper');
+            const tabsBar = document.getElementById('multiImageTabsBar');
+            const editBtn = document.getElementById('viewerEditBtn');
+
+            imgEl.classList.remove('hidden');
+            pdfWrap.classList.add('hidden');
+            editBtn.classList.remove('hidden');
+
+            if (menu.type === 'pid_multi') {
+                viewerMode = 'pid_multi';
+                document.getElementById('viewerEditBtnLabel').textContent = 'Atur P&ID';
+                if (activePidSheetIndex >= window.appState.pidSheets.length) {
+                    activePidSheetIndex = 0;
+                }
+                renderPidTabs();
+                tabsBar.classList.remove('hidden');
+                selectPidSheet(activePidSheetIndex);
+            } else {
+                viewerMode = 'image';
+                document.getElementById('viewerEditBtnLabel').textContent = 'Ganti Gambar';
+                tabsBar.classList.add('hidden');
+                document.getElementById('viewerTitle').textContent = menu.title;
+                document.getElementById('viewerSubtitle').textContent = 'Cubit 2 jari untuk zoom & geser layar';
+                imgEl.src = menu.target || menu.defaultImage || DEFAULT_SHIFT_SVG;
+                resetZoom();
+            }
+
+            document.getElementById('imageViewerModal').classList.remove('hidden');
+        }
+
+        function openPdfViewer(title, pdfUrl) {
+            if (!pdfUrl || pdfUrl === '#') {
+                showToast('Link PDF belum tersedia untuk laporan ini.', 'error');
+                return;
+            }
+            viewerMode = 'pdf';
+            activeImageMenuId = null;
+
+            const imgEl = document.getElementById('viewerImageElement');
+            const pdfWrap = document.getElementById('viewerPdfWrapper');
+            const pdfFrame = document.getElementById('viewerPdfFrame');
+            const tabsBar = document.getElementById('multiImageTabsBar');
+            const editBtn = document.getElementById('viewerEditBtn');
+
+            imgEl.classList.add('hidden');
+            tabsBar.classList.add('hidden');
+            editBtn.classList.add('hidden');
+            pdfWrap.classList.remove('hidden');
+
+            document.getElementById('viewerTitle').textContent = title || 'Dokumen PDF';
+            document.getElementById('viewerSubtitle').textContent = 'Cubit 2 jari untuk memperbesar PDF';
+
+            let embedUrl = pdfUrl;
+            if (pdfUrl.includes('drive.google.com') && pdfUrl.includes('/view')) {
+                embedUrl = pdfUrl.replace('/view', '/preview');
+            }
+            pdfFrame.src = embedUrl;
+
+            resetZoom();
+            document.getElementById('imageViewerModal').classList.remove('hidden');
+        }
+
+        function renderPidTabs() {
+            const tabsBar = document.getElementById('multiImageTabsBar');
+            tabsBar.innerHTML = '';
+            window.appState.pidSheets.forEach((sheet, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isActive = idx === activePidSheetIndex;
+                btn.className = `px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${isActive ? 'bg-amber-500 text-slate-950 shadow' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`;
+                btn.textContent = `${idx + 1}. ${sheet.name}`;
+                btn.onclick = () => selectPidSheet(idx);
+                tabsBar.appendChild(btn);
+            });
+        }
+
+        function selectPidSheet(idx) {
+            activePidSheetIndex = idx;
+            const sheet = window.appState.pidSheets[idx];
+            if (!sheet) return;
+
+            document.getElementById('viewerTitle').textContent = sheet.name;
+            document.getElementById('viewerSubtitle').textContent = `Lembar ${idx + 1} dari ${window.appState.pidSheets.length} • Cubit 2 jari untuk zoom`;
+            document.getElementById('viewerImageElement').src = sheet.image || sheet.defaultImage || DEFAULT_PID_SVG_1;
+            renderPidTabs();
+            resetZoom();
+        }
+
+        function applyZoomTransform() {
+            const targetEl = viewerMode === 'pdf'
+                ? document.getElementById('viewerPdfWrapper')
+                : document.getElementById('viewerImageElement');
+
+            targetEl.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+            document.getElementById('zoomLevelBadge').textContent = `${Math.round(zoomScale * 100)}%`;
+        }
+
+        function adjustZoom(delta) {
+            zoomScale = Math.min(Math.max(0.6, zoomScale + delta), 5);
+            if (zoomScale <= 1) {
+                panX = 0;
+                panY = 0;
+            }
+            applyZoomTransform();
+        }
+
+        function resetZoom() {
+            zoomScale = 1;
+            panX = 0;
+            panY = 0;
+            applyZoomTransform();
+        }
+
+        // 2-Finger Pinch-to-Zoom & 1-Finger Panning Handlers
+        function getTouchDistance(t1, t2) {
+            const dx = t1.clientX - t2.clientX;
+            const dy = t1.clientY - t2.clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        const viewport = document.getElementById('imageViewport');
+        viewport.addEventListener('mousedown', (e) => {
+            if (zoomScale <= 1) return;
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            applyZoomTransform();
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                isDragging = false;
+                initialPinchDist = getTouchDistance(e.touches[0], e.touches[1]);
+                initialPinchScale = zoomScale;
+            } else if (e.touches.length === 1 && zoomScale > 1) {
+                isDragging = true;
+                startX = e.touches[0].clientX - panX;
+                startY = e.touches[0].clientY - panY;
+            }
+        }, { passive: true });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && initialPinchDist) {
+                e.preventDefault();
+                const currentDist = getTouchDistance(e.touches[0], e.touches[1]);
+                const ratio = currentDist / initialPinchDist;
+                zoomScale = Math.min(Math.max(0.6, initialPinchScale * ratio), 5);
+                if (zoomScale <= 1) {
+                    panX = 0;
+                    panY = 0;
+                }
+                applyZoomTransform();
+            } else if (isDragging && e.touches.length === 1) {
+                panX = e.touches[0].clientX - startX;
+                panY = e.touches[0].clientY - startY;
+                applyZoomTransform();
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                initialPinchDist = null;
+            }
+            if (e.touches.length === 0) {
+                isDragging = false;
+            }
+        });
+
+        // --- 10. EDIT IMAGE SOURCE & MULTI-P&ID MANAGER ---
+        function openEditImageSourceModal() {
+            const multiSec = document.getElementById('pidMultiManagerSection');
+            const sheetTitleGroup = document.getElementById('sheetTitleInputGroup');
+            const urlInput = document.getElementById('imageUrlInput');
+            document.getElementById('imageFileUpload').value = '';
+
+            if (viewerMode === 'pid_multi') {
+                document.getElementById('editImgModalHeading').textContent = 'Atur Multi-Gambar P&ID';
+                multiSec.classList.remove('hidden');
+                sheetTitleGroup.classList.remove('hidden');
+                renderPidManagerList();
+
+                const activeSheet = window.appState.pidSheets[activePidSheetIndex];
+                document.getElementById('activeSheetNameInput').value = activeSheet ? activeSheet.name : '';
+                urlInput.value = (activeSheet && activeSheet.image && activeSheet.image.startsWith('http')) ? activeSheet.image : '';
+            } else {
+                document.getElementById('editImgModalHeading').textContent = 'Perbarui Gambar Dokumen';
+                multiSec.classList.add('hidden');
+                sheetTitleGroup.classList.add('hidden');
+
+                const menu = window.appState.menus.find(m => m.id === activeImageMenuId);
+                urlInput.value = (menu && menu.target && menu.target.startsWith('http')) ? menu.target : '';
+            }
+
+            document.getElementById('editImageSourceModal').classList.remove('hidden');
+        }
+
+        function renderPidManagerList() {
+            const list = document.getElementById('pidSheetsList');
+            list.innerHTML = '';
+            window.appState.pidSheets.forEach((sheet, idx) => {
+                const isSelected = idx === activePidSheetIndex;
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between px-3 py-2 rounded-xl border text-xs ${isSelected ? 'bg-amber-50 border-amber-400 font-bold' : 'bg-slate-50 border-slate-200'}`;
+                row.innerHTML = `
+                    <button type="button" onclick="switchPidInEditor(${idx})" class="text-left flex-1 truncate pr-2">
+                        ${idx + 1}. ${sheet.name}
+                    </button>
+                    ${window.appState.pidSheets.length > 1 ? `
+                        <button type="button" onclick="deletePidSheet(${idx})" class="text-rose-500 hover:text-rose-700 px-1.5" title="Hapus lembar">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    ` : ''}
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function switchPidInEditor(idx) {
+            selectPidSheet(idx);
+            openEditImageSourceModal();
+        }
+
+        function addNewPidSheet() {
+            const newNum = window.appState.pidSheets.length + 1;
+            window.appState.pidSheets.push({
+                id: 'pid_' + Date.now(),
+                name: `P&ID Sheet ${newNum}`,
+                image: DEFAULT_PID_SVG_1,
+                defaultImage: DEFAULT_PID_SVG_1
+            });
+            activePidSheetIndex = window.appState.pidSheets.length - 1;
+            saveState();
+            renderMenus();
+            selectPidSheet(activePidSheetIndex);
+            openEditImageSourceModal();
+            showToast(`Lembar P&ID #${newNum} ditambahkan!`);
+        }
+
+        function deletePidSheet(idx) {
+            if (window.appState.pidSheets.length <= 1) return;
+            window.appState.pidSheets.splice(idx, 1);
+            activePidSheetIndex = 0;
+            saveState();
+            renderMenus();
+            selectPidSheet(0);
+            openEditImageSourceModal();
+            showToast('Lembar P&ID dihapus.');
+        }
+
+        function handleImageFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            compressImageFile(file, 1400, 0.82, (dataUrl) => {
+                if (viewerMode === 'pid_multi') {
+                    const sheet = window.appState.pidSheets[activePidSheetIndex];
+                    const customName = document.getElementById('activeSheetNameInput').value.trim();
+                    if (sheet) {
+                        if (customName) sheet.name = customName;
+                        sheet.image = dataUrl;
+                        saveState();
+                        selectPidSheet(activePidSheetIndex);
+                        closeModal('editImageSourceModal');
+                        showToast('Gambar P&ID berhasil diupload & disinkronkan!');
+                    }
+                } else {
+                    const menu = window.appState.menus.find(m => m.id === activeImageMenuId);
+                    if (menu) {
+                        menu.target = dataUrl;
+                        saveState();
+                        document.getElementById('viewerImageElement').src = dataUrl;
+                        resetZoom();
+                        closeModal('editImageSourceModal');
+                        showToast('Gambar berhasil diperbarui & disinkronkan!');
+                    }
+                }
+            });
+        }
+
+        function saveImageUrl() {
+            const url = document.getElementById('imageUrlInput').value.trim();
+
+            if (viewerMode === 'pid_multi') {
+                const sheet = window.appState.pidSheets[activePidSheetIndex];
+                const customName = document.getElementById('activeSheetNameInput').value.trim();
+                if (sheet) {
+                    if (customName) sheet.name = customName;
+                    if (url) sheet.image = url;
+                    saveState();
+                    selectPidSheet(activePidSheetIndex);
+                    closeModal('editImageSourceModal');
+                    showToast('Data lembar P&ID disimpan & disinkronkan!');
+                }
+                return;
+            }
+
+            if (!url) {
+                showToast('Masukkan URL gambar yang valid.', 'error');
+                return;
+            }
+            const menu = window.appState.menus.find(m => m.id === activeImageMenuId);
+            if (menu) {
+                menu.target = url;
+                saveState();
+                document.getElementById('viewerImageElement').src = url;
+                resetZoom();
+                closeModal('editImageSourceModal');
+                showToast('Link gambar berhasil disimpan & disinkronkan!');
+            }
+        }
+
+        function restoreDefaultImage() {
+            if (viewerMode === 'pid_multi') {
+                const sheet = window.appState.pidSheets[activePidSheetIndex];
+                if (sheet) {
+                    sheet.image = sheet.defaultImage || DEFAULT_PID_SVG_1;
+                    saveState();
+                    selectPidSheet(activePidSheetIndex);
+                    closeModal('editImageSourceModal');
+                    showToast('Diagram P&ID dikembalikan ke bawaan.');
+                }
+                return;
+            }
+
+            const menu = window.appState.menus.find(m => m.id === activeImageMenuId);
+            if (menu && menu.defaultImage) {
+                menu.target = menu.defaultImage;
+                saveState();
+                document.getElementById('viewerImageElement').src = menu.defaultImage;
+                resetZoom();
+                closeModal('editImageSourceModal');
+                showToast('Dikembalikan ke gambar bawaan.');
+            } else {
+                showToast('Menu kustom tidak memiliki gambar bawaan.', 'error');
+            }
+        }
+
+        function compressImageFile(file, maxWidth, quality, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > maxWidth) {
+                        h = Math.round((h * maxWidth) / w);
+                        w = maxWidth;
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- 11. RIWAYAT REPORT GOOGLE FORM, SPREADSHEET & PDF VIEWER ---
+        function renderReportPreview() {
+            const previewList = document.getElementById('recentReportPreviewList');
+            const formBtn = document.getElementById('externalReportFormLink');
+            const sheetBtn = document.getElementById('externalReportSheetLink');
+
+            if (formBtn) formBtn.href = window.appState.reportFormUrl || 'https://forms.google.com';
+            if (sheetBtn) sheetBtn.href = window.appState.reportSheetUrl || 'https://docs.google.com/spreadsheets';
+
+            if (!previewList) return;
+            previewList.innerHTML = '';
+
+            if (!window.appState.reports || window.appState.reports.length === 0) {
+                previewList.innerHTML = `
+                    <div class="text-xs text-slate-500 bg-slate-50 px-3 py-2.5 rounded-xl font-medium">
+                        Belum ada riwayat hasil form/PDF. Ketuk "Lihat Riwayat" untuk membuka Google Form atau Spreadsheet.
+                    </div>
+                `;
+                return;
+            }
+
+            window.appState.reports.slice(0, 2).forEach(rep => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between text-xs bg-slate-50 border border-slate-200/80 px-3 py-2.5 rounded-xl gap-2';
+                row.innerHTML = `
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-slate-800 truncate">${rep.title}</p>
+                        <p class="text-[10px] text-slate-500 truncate">${rep.pic} • <span class="text-emerald-700 font-semibold">${rep.emailStatus || 'PDF Email'}</span></p>
+                    </div>
+                    <button type="button" onclick="openPdfViewer('${rep.title.replace(/'/g, "\\'")}', '${rep.pdfUrl || ''}')" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] shrink-0 flex items-center gap-1 shadow-sm">
+                        <i class="fa-solid fa-file-pdf"></i> PDF
+                    </button>
+                `;
+                previewList.appendChild(row);
+            });
+        }
+
+        function openReportModal() {
+            renderReportList();
+            document.getElementById('reportModal').classList.remove('hidden');
+        }
+
+        function toggleAddReportForm() {
+            document.getElementById('addReportForm').classList.toggle('hidden');
+        }
+
+        function openReportSettingsModal() {
+            document.getElementById('cfgReportFormUrl').value = window.appState.reportFormUrl || '';
+            document.getElementById('cfgReportSheetUrl').value = window.appState.reportSheetUrl || '';
+            document.getElementById('reportSettingsModal').classList.remove('hidden');
+        }
+
+        function handleSaveReportSettings(e) {
+            e.preventDefault();
+            window.appState.reportFormUrl = document.getElementById('cfgReportFormUrl').value.trim() || 'https://forms.google.com';
+            window.appState.reportSheetUrl = document.getElementById('cfgReportSheetUrl').value.trim() || 'https://docs.google.com/spreadsheets';
+            saveState();
+            renderReportPreview();
+            closeModal('reportSettingsModal');
+            showToast('Link Google Form & Spreadsheet diperbarui!');
+        }
+
+        function renderReportList() {
+            const container = document.getElementById('reportListContainer');
+            container.innerHTML = '';
+
+            if (!window.appState.reports || window.appState.reports.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-slate-400 py-8">Belum ada riwayat hasil Google Form.</p>`;
+                return;
+            }
+
+            window.appState.reports.forEach(rep => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2';
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0 flex-1">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">
+                                <i class="fa-solid fa-envelope-circle-check"></i> ${rep.emailStatus || 'PDF Terkirim ke Email'}
+                            </span>
+                            <h4 class="font-extrabold text-sm text-slate-900 mt-1">${rep.title}</h4>
+                            <p class="text-[11px] text-slate-500">Pengisi: <strong class="text-slate-700">${rep.pic}</strong> • ${rep.time}</p>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" onclick="openPdfViewer('${rep.title.replace(/'/g, "\\'")}', '${rep.pdfUrl || ''}')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-file-pdf"></i> Buka PDF
+                            </button>
+                            <button type="button" onclick="requireAdminAuth(() => deleteReportLog('${rep.id}'))" class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 flex items-center justify-center">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ${rep.note ? `<p class="text-xs text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200/70">${rep.note}</p>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function handleAddReportLog(e) {
+            e.preventDefault();
+            const title = document.getElementById('repTitleInput').value.trim();
+            const pic = document.getElementById('repPicInput').value.trim();
+            const emailStatus = document.getElementById('repEmailStatusInput').value.trim() || 'PDF Terkirim ke Email';
+            const pdfUrl = document.getElementById('repPdfUrlInput').value.trim() || DEFAULT_SAMPLE_PDF;
+            const note = document.getElementById('repNoteInput').value.trim();
+
+            const now = new Date();
+            const timeStr = `Hari ini, ${now.toTimeString().slice(0, 5)} WIB`;
+
+            window.appState.reports.unshift({
+                id: 'rep_' + Date.now(),
+                title,
+                pic,
+                emailStatus,
+                time: timeStr,
+                note,
+                pdfUrl
+            });
+
+            saveState();
+            e.target.reset();
+            toggleAddReportForm();
+            renderReportList();
+            renderReportPreview();
+            showToast('Riwayat hasil form & PDF disinkronkan!');
+        }
+
+        function deleteReportLog(id) {
+            window.appState.reports = window.appState.reports.filter(r => r.id !== id);
+            saveState();
+            renderReportList();
+            renderReportPreview();
+            showToast('Riwayat report dihapus.');
+        }
+
+        // --- 12. ADD & EDIT MENUS / EMERGENCY NUMBERS ---
+        let tempUploadedMenuImage = null;
+
+        function openAddMenuModal() {
+            requireAdminAuth(() => {
+                tempUploadedMenuImage = null;
+                document.getElementById('menuFormTitle').textContent = '+ Tambah Menu Baru';
+                document.getElementById('editMenuId').value = '';
+                document.getElementById('menuTitleInput').value = '';
+                document.getElementById('menuDescInput').value = '';
+                document.getElementById('menuTypeWrapper').classList.remove('hidden');
+                document.getElementById('menuTypeInput').value = 'link';
+                document.getElementById('menuTargetInput').value = '';
+                document.getElementById('menuIconInput').value = 'fa-file-lines';
+                document.getElementById('menuColorInput').value = 'blue';
+                document.getElementById('deleteMenuBtn').classList.add('hidden');
+                
+                toggleMenuTargetInput();
+                document.getElementById('menuFormModal').classList.remove('hidden');
+            });
+        }
+
+        function openEditMenuModal(menuId) {
+            requireAdminAuth(() => {
+                tempUploadedMenuImage = null;
+
+                const menu = window.appState.menus.find(m => m.id === menuId);
+                if (!menu) return;
+
+                document.getElementById('menuFormTitle').textContent = `Edit Menu: ${menu.title}`;
+                document.getElementById('editMenuId').value = menu.id;
+                document.getElementById('menuTitleInput').value = menu.title;
+                document.getElementById('menuDescInput').value = menu.desc || '';
+                document.getElementById('menuIconInput').value = menu.icon;
+                document.getElementById('menuColorInput').value = menu.color;
+
+                if (menu.isCore) {
+                    document.getElementById('menuTypeWrapper').classList.add('hidden');
+                    document.getElementById('deleteMenuBtn').classList.add('hidden');
+                } else {
+                    document.getElementById('menuTypeWrapper').classList.remove('hidden');
+                    document.getElementById('deleteMenuBtn').classList.remove('hidden');
+                }
+
+                document.getElementById('menuTypeInput').value = menu.type;
+                document.getElementById('menuTargetInput').value = (menu.target && !menu.target.startsWith('data:')) ? menu.target : '';
+
+                toggleMenuTargetInput();
+
+                if (menu.type === 'pid_multi') {
+                    document.getElementById('targetLinkGroup').classList.add('hidden');
+                    document.getElementById('targetImageUploadGroup').classList.add('hidden');
+                }
+
+                document.getElementById('menuFormModal').classList.remove('hidden');
+            });
+        }
+
+        function toggleMenuTargetInput() {
+            const type = document.getElementById('menuTypeInput').value;
+            const linkGroup = document.getElementById('targetLinkGroup');
+            const imgUploadGroup = document.getElementById('targetImageUploadGroup');
+            const label = document.getElementById('targetLabel');
+            const input = document.getElementById('menuTargetInput');
+            const helper = document.getElementById('targetHelper');
+
+            linkGroup.classList.remove('hidden');
+            imgUploadGroup.classList.add('hidden');
+
+            if (type === 'link') {
+                label.textContent = 'URL App Web / Link Tujuan *';
+                input.placeholder = 'https://...';
+                helper.textContent = 'Masukkan link lengkap Web App Inventory, Google Form, atau Drive.';
+            } else if (type === 'pdf') {
+                label.textContent = 'URL Dokumen PDF (Google Drive / Web) *';
+                input.placeholder = 'https://drive.google.com/file/d/.../view';
+                helper.textContent = 'PDF akan terbuka dengan fitur cubit 2 jari (Pinch Zoom).';
+            } else if (type === 'image') {
+                label.textContent = 'URL Gambar (Opsional jika upload file)';
+                input.placeholder = 'https://contoh.com/gambar.jpg';
+                helper.textContent = 'Bisa isi URL gambar atau upload foto langsung di bawah.';
+                imgUploadGroup.classList.remove('hidden');
+            } else if (type === 'whatsapp') {
+                label.textContent = 'Nomor WhatsApp (Format 628...) *';
+                input.placeholder = '6281234567890';
+                helper.textContent = 'Awali dengan 62 tanpa tanda + atau spasi.';
+            }
+        }
+
+        function handleCustomMenuImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            compressImageFile(file, 1400, 0.82, (dataUrl) => {
+                tempUploadedMenuImage = dataUrl;
+                showToast('Foto siap disimpan bersama menu!');
+            });
+        }
+
+        function handleSaveMenu(e) {
+            e.preventDefault();
+            const id = document.getElementById('editMenuId').value;
+            const title = document.getElementById('menuTitleInput').value.trim();
+            const desc = document.getElementById('menuDescInput').value.trim();
+            const type = document.getElementById('menuTypeInput').value;
+            let target = document.getElementById('menuTargetInput').value.trim();
+            const icon = document.getElementById('menuIconInput').value;
+            const color = document.getElementById('menuColorInput').value;
+
+            if (type === 'image' && tempUploadedMenuImage) {
+                target = tempUploadedMenuImage;
+            } else if ((type === 'link' || type === 'pdf') && target && !target.startsWith('http://') && !target.startsWith('https://')) {
+                target = 'https://' + target;
+            }
+
+            if (id) {
+                const menu = window.appState.menus.find(m => m.id === id);
+                if (menu) {
+                    menu.title = title;
+                    menu.desc = desc;
+                    if (!menu.isCore) menu.type = type;
+                    if (target) menu.target = target;
+                    menu.icon = icon;
+                    menu.color = color;
+                }
+                showToast('Perubahan menu disinkronkan ke semua HP!');
+            } else {
+                window.appState.menus.push({
+                    id: 'custom_' + Date.now(),
+                    title,
+                    desc,
+                    type,
+                    target: target || (type === 'image' ? DEFAULT_SHIFT_SVG : '#'),
+                    icon,
+                    color,
+                    isCore: false
+                });
+                showToast('Menu baru ditambahkan & disinkronkan!');
+            }
+
+            saveState();
+            renderMenus();
+            closeModal('menuFormModal');
+        }
+
+        function deleteCurrentMenu() {
+            const id = document.getElementById('editMenuId').value;
+            if (!id) return;
+            window.appState.menus = window.appState.menus.filter(m => m.id !== id);
+            saveState();
+            renderMenus();
+            closeModal('menuFormModal');
+            showToast('Menu berhasil dihapus.');
+        }
+
+        function openEditEmergencyModal(id) {
+            requireAdminAuth(() => {
+                const item = window.appState.emergencies.find(e => e.id === id);
+                if (!item) return;
+
+                document.getElementById('editEmergencyId').value = item.id;
+                document.getElementById('emergencyNameInput').value = item.name;
+                document.getElementById('emergencyPhoneInput').value = item.phone;
+                document.getElementById('emergencyMsgInput').value = item.message || '';
+                document.getElementById('editEmergencyModal').classList.remove('hidden');
+            });
+        }
+
+        function handleSaveEmergency(e) {
+            e.preventDefault();
+            const id = document.getElementById('editEmergencyId').value;
+            const name = document.getElementById('emergencyNameInput').value.trim();
+            const phone = document.getElementById('emergencyPhoneInput').value.replace(/\D/g, '');
+            const message = document.getElementById('emergencyMsgInput').value.trim();
+
+            const item = window.appState.emergencies.find(em => em.id === id);
+            if (item) {
+                item.name = name;
+                item.phone = phone;
+                item.message = message;
+            }
+            saveState();
+            renderEmergencies();
+            closeModal('editEmergencyModal');
+            showToast(`Nomor ${name} diperbarui & disinkronkan!`);
+        }
+
+        function openInstallModal() {
+            document.getElementById('installGuideModal').classList.remove('hidden');
+        }
+
+        function openCloudSyncModal() {
+            const inputEl = document.getElementById('shareableSyncLinkInput');
+            if (inputEl) inputEl.value = window.location.href;
+            document.getElementById('cloudSyncModal').classList.remove('hidden');
+        }
+
+        function copyShareableSyncLink() {
+            const inputEl = document.getElementById('shareableSyncLinkInput');
+            if (!inputEl) return;
+            inputEl.value = window.location.href;
+            inputEl.select();
+            inputEl.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast('Link Sync berhasil disalin! Kirim ke grup WA agar semua HP ikut terupdate.');
+            } catch (e) {
+                showToast('Silakan salin link pada kotak secara manual.', 'error');
+            }
+        }
+
+        function forcePullCloudNow() {
+            if (typeof window.pullStateFromCloud === 'function') {
+                window.pullStateFromCloud(true);
+            }
+        }
+
+        function openConfirmReset() {
+            requireAdminAuth(() => {
+                document.getElementById('confirmResetModal').classList.remove('hidden');
+            });
+        }
+
+        function executeResetDefault() {
+            localStorage.removeItem(STORAGE_KEY);
+            window.appState = JSON.parse(JSON.stringify(defaultState));
+            saveState();
+            closeModal('confirmResetModal');
+            if (isEditMode) toggleEditMode();
+            renderAll();
+            showToast('Semua pengaturan dikembalikan ke default.');
+        }
+
+        // Initial Render
+        function renderAll() {
+            applyAppTextsToDOM();
+            renderCarousel();
+            renderEmergencies();
+            renderMenus();
+            renderReportPreview();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+            resetCarouselAutoplay();
+            if (typeof window.initUniversalSync === 'function') {
+                window.initUniversalSync();
+            }
+        });
+    </script>
+</body>
+</html>
